@@ -33,9 +33,9 @@ jobs:
 
       - name: Prepare dist
         run: |
-          mkdir -p dist/data
+          mkdir -p dist
           cp index.html dist/
-          cp -r data/ dist/data/
+          cp -r data dist/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
