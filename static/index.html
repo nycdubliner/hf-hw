@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HF Hardware Browser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0f1117; color: #e2e8f0; }
+    .card { background: #1a1f2e; border: 1px solid #2d3748; }
+    .quant-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: opacity .15s; }
+    .quant-chip:hover { opacity: 0.8; }
+    .gpu-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #2d3748; border-radius: 9999px; font-size: 0.8rem; }
+    .sort-btn { padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: 1px solid #374151; background: transparent; color: #94a3b8; transition: all .15s; }
+    .sort-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+    .sort-btn:hover:not(.active) { background: #1e2433; }
+    select.gpu-select { background: #1a1f2e; border: 1px solid #374151; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; }
+    input.search-box { background: #1a1f2e; border: 1px solid #374151; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; }
+    input.search-box:focus { outline: none; border-color: #3b82f6; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #374151; border-top-color: #3b82f6; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ctx-slider { -webkit-appearance: none; width: 100%; height: 4px; background: #374151; border-radius: 2px; outline: none; }
+    .ctx-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
+    .vram-bar { height: 6px; border-radius: 3px; transition: width .3s; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<div class="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+  <h1 class="text-lg font-bold text-white">HF Hardware Browser</h1>
+  <div id="vram-badge" class="text-sm font-mono text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full">
+    0 GB VRAM selected
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="px-6 py-4 border-b border-gray-800 space-y-4">
+
+  <!-- GPU Picker -->
+  <div class="flex flex-wrap items-center gap-3">
+    <span class="text-sm text-gray-400 whitespace-nowrap">GPUs (up to 4):</span>
+    <div id="gpu-chips" class="flex flex-wrap gap-2"></div>
+    <select id="gpu-select" class="gpu-select" onchange="addGpu(this.value)">
+      <option value="">+ Add GPU</option>
+    </select>
+  </div>
+
+  <!-- Context Slider -->
+  <div class="flex items-center gap-4">
+    <span class="text-sm text-gray-400 whitespace-nowrap">Context:</span>
+    <input type="range" id="ctx-slider" class="ctx-slider" min="0" max="9" step="1" value="3" oninput="updateContext()" />
+    <span id="ctx-label" class="text-sm font-mono text-blue-300 whitespace-nowrap w-28">8K tokens</span>
+    <span id="ctx-overhead" class="text-xs text-gray-500"></span>
+  </div>
+
+  <!-- KV Cache Quant -->
+  <div class="flex items-center gap-4">
+    <span class="text-sm text-gray-400 whitespace-nowrap">KV Cache:</span>
+    <select id="kv-select" class="gpu-select" onchange="setKvQuant(this.value)">
+      <option value="f16">F16 (full precision)</option>
+      <option value="q8">Q8 (8-bit, ½ KV)</option>
+      <option value="q6">Q6 (6-bit, ¾ KV)</option>
+      <option value="q4">Q4 (4-bit, ¼ KV)</option>
+    </select>
+    <span id="kv-note" class="text-xs text-gray-500"></span>
+  </div>
+
+  <!-- Sort + Search -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="flex gap-1">
+      <button class="sort-btn active" data-sort="trending" onclick="setSort('trending', this)">Trending</button>
+      <button class="sort-btn" data-sort="downloads" onclick="setSort('downloads', this)">Downloads</button>
+      <button class="sort-btn" data-sort="likes" onclick="setSort('likes', this)">Likes</button>
+      <button class="sort-btn" data-sort="newest" onclick="setSort('newest', this)">Newest</button>
+      <button class="sort-btn" data-sort="updated" onclick="setSort('updated', this)">Updated</button>
+    </div>
+    <input
+      type="text"
+      id="search-box"
+      class="search-box flex-1 min-w-40"
+      placeholder="Search models..."
+      oninput="debounceSearch()"
+    />
+  </div>
+</div>
+
+<!-- Results -->
+<div class="px-6 py-4">
+  <div id="status" class="text-sm text-gray-500 mb-3"></div>
+  <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  <div id="load-more-wrap" class="flex justify-center mt-6 hidden">
+    <button onclick="loadMore()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">
+      Load More
+    </button>
+  </div>
+  <div id="spinner" class="flex justify-center mt-8 hidden">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<script>
+// --- State ---
+const CTX_STEPS  = [1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 196608, 262144];
+const CTX_LABELS = ["1K","2K","4K","8K","16K","32K","64K","128K","192K","256K"];
+
+const KV_BPE = { f16: 2.0, q8: 1.0, q6: 0.75, q4: 0.5 };
+
+let state = {
+  gpus: [],       // [{name, vram, bandwidth_gbs}]
+  context: 8192,
+  kvQuant: "f16",
+  sort: "trending",
+  search: "",
+  page: 0,
+  loading: false,
+  allModels: [],
+  hasMore: true,
+};
+
+let gpuDB = {};
+let searchTimer = null;
+
+// --- GPU Database ---
+async function loadGpus() {
+  const res = await fetch("/api/gpus");
+  gpuDB = await res.json();
+  populateGpuSelect();
+}
+
+function populateGpuSelect() {
+  const sel = document.getElementById("gpu-select");
+  for (const [mfr, series] of Object.entries(gpuDB)) {
+    for (const [seriesName, cards] of Object.entries(series)) {
+      const group = document.createElement("optgroup");
+      group.label = `${mfr} — ${seriesName}`;
+      for (const card of cards) {
+        const opt = document.createElement("option");
+        opt.value = JSON.stringify(card);
+        opt.text = `${card.name} (${card.vram} GB)`;
+        group.appendChild(opt);
+      }
+      sel.appendChild(group);
+    }
+  }
+}
+
+function addGpu(valStr) {
+  if (!valStr || state.gpus.length >= 4) return;
+  const card = JSON.parse(valStr);
+  state.gpus.push(card);
+  document.getElementById("gpu-select").value = "";
+  renderGpuChips();
+  updateVramBadge();
+  updateKvNote();
+  resetAndFetch();
+}
+
+function removeGpu(idx) {
+  state.gpus.splice(idx, 1);
+  renderGpuChips();
+  updateVramBadge();
+  updateKvNote();
+  resetAndFetch();
+}
+
+function renderGpuChips() {
+  const el = document.getElementById("gpu-chips");
+  el.innerHTML = "";
+  state.gpus.forEach((g, i) => {
+    const chip = document.createElement("span");
+    chip.className = "gpu-chip";
+    chip.innerHTML = `${g.name} <span class="text-blue-400 font-mono">${g.vram}GB</span> <button onclick="removeGpu(${i})" class="text-gray-500 hover:text-red-400 ml-1 font-bold leading-none">&times;</button>`;
+    el.appendChild(chip);
+  });
+  document.getElementById("gpu-select").disabled = state.gpus.length >= 4;
+}
+
+function totalVram() {
+  return state.gpus.reduce((s, g) => s + g.vram, 0);
+}
+
+function totalBandwidth() {
+  const bws = state.gpus.map(g => g.bandwidth_gbs || 0);
+  const total = bws.reduce((s, b) => s + b, 0);
+  // Multi-GPU PCIe overhead penalty
+  return bws.length > 1 ? total * 0.65 : total * 0.85;
+}
+
+function updateVramBadge() {
+  const vram = totalVram();
+  const bw = totalBandwidth();
+  const el = document.getElementById("vram-badge");
+  if (vram > 0) {
+    el.textContent = `${vram} GB VRAM · ${Math.round(bw)} GB/s`;
+    el.className = "text-sm font-mono text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full";
+  } else {
+    el.textContent = "0 GB VRAM selected";
+    el.className = "text-sm font-mono text-gray-500 bg-gray-800 px-3 py-1 rounded-full";
+  }
+}
+
+// --- Context ---
+function updateContext() {
+  const idx = parseInt(document.getElementById("ctx-slider").value);
+  state.context = CTX_STEPS[idx];
+  document.getElementById("ctx-label").textContent = CTX_LABELS[idx] + " tokens";
+  updateOverheadLabel();
+  updateKvNote();
+  resetAndFetch();
+}
+
+function updateOverheadLabel() {
+  const el = document.getElementById("ctx-overhead");
+  if (state.gpus.length === 0) { el.textContent = ""; return; }
+  const ex = 10 * 0.1 * (state.context / 8192);
+  el.textContent = `(~${ex.toFixed(1)} GB overhead on a 10 GB model)`;
+}
+
+// --- KV Cache Quant ---
+function setKvQuant(val) {
+  state.kvQuant = val;
+  updateKvNote();
+  resetAndFetch();
+}
+
+function updateKvNote() {
+  const el = document.getElementById("kv-note");
+  if (state.gpus.length === 0 || state.kvQuant === "f16") { el.textContent = ""; return; }
+  // Show saving vs F16 for a 10GB model at current context
+  const f16kv = 10 * 0.1 * (state.context / 8192) * (KV_BPE.f16 / KV_BPE.f16);
+  const curkv = 10 * 0.1 * (state.context / 8192) * (KV_BPE[state.kvQuant] / KV_BPE.f16);
+  const saving = f16kv - curkv;
+  el.textContent = `saves ~${saving.toFixed(1)} GB KV at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} on a 10 GB model`;
+}
+
+// --- Sort ---
+function setSort(sort, btn) {
+  document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  state.sort = sort;
+  resetAndFetch();
+}
+
+// --- Search ---
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.search = document.getElementById("search-box").value.trim();
+    resetAndFetch();
+  }, 400);
+}
+
+// --- Fetch ---
+function resetAndFetch() {
+  state.page = 0;
+  state.allModels = [];
+  state.hasMore = true;
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("load-more-wrap").classList.add("hidden");
+  fetchModels();
+}
+
+async function fetchModels() {
+  if (state.loading) return;
+  const vram = totalVram();
+  if (vram === 0) {
+    document.getElementById("status").textContent = "Select at least one GPU to see compatible models.";
+    return;
+  }
+
+  state.loading = true;
+  document.getElementById("spinner").classList.remove("hidden");
+  document.getElementById("status").textContent = "Fetching models…";
+
+  const params = new URLSearchParams({
+    vram_gb:  vram,
+    context:  state.context,
+    kv_quant: state.kvQuant,
+    sort:     state.sort,
+    page:     state.page,
+    search:   state.search,
+  });
+
+  try {
+    const res = await fetch(`/api/models?${params}`);
+    const models = await res.json();
+
+    if (models.length === 0) {
+      state.hasMore = false;
+      document.getElementById("load-more-wrap").classList.add("hidden");
+    } else {
+      state.allModels.push(...models);
+      renderModels(models, state.page === 0);
+      document.getElementById("load-more-wrap").classList.remove("hidden");
+    }
+
+    const total = state.allModels.length;
+    document.getElementById("status").textContent =
+      total > 0
+        ? `${total} model${total !== 1 ? "s" : ""} found fitting ${vram} GB VRAM at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} context`
+        : "No compatible models found for this hardware configuration.";
+  } catch (e) {
+    document.getElementById("status").textContent = "Error fetching models. Is the server running?";
+  } finally {
+    state.loading = false;
+    document.getElementById("spinner").classList.add("hidden");
+  }
+}
+
+function loadMore() {
+  state.page++;
+  fetchModels();
+}
+
+// --- Rendering ---
+
+const COLOR_MAP = {
+  red:    "bg-red-900/50 text-red-300 border border-red-800",
+  orange: "bg-orange-900/50 text-orange-300 border border-orange-800",
+  amber:  "bg-amber-900/50 text-amber-300 border border-amber-800",
+  yellow: "bg-yellow-900/50 text-yellow-300 border border-yellow-800",
+  lime:   "bg-lime-900/50 text-lime-300 border border-lime-800",
+  green:  "bg-green-900/50 text-green-300 border border-green-800",
+  teal:   "bg-teal-900/50 text-teal-300 border border-teal-800",
+  blue:   "bg-blue-900/50 text-blue-300 border border-blue-800",
+  gray:   "bg-gray-800 text-gray-400 border border-gray-700",
+};
+
+function formatNum(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  return String(n);
+}
+
+function relativeDate(iso) {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "today";
+  if (days === 1) return "1d ago";
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
+function fmtCtx(n) {
+  if (!n) return "";
+  if (n >= 1024) return Math.round(n / 1024) + "K";
+  return String(n);
+}
+
+function hfModelUrl(id) {
+  return `https://huggingface.co/${id}`;
+}
+
+function hfFileUrl(id, filename) {
+  const base = `https://huggingface.co/${id}/blob/main/`;
+  return base + encodeURIComponent(filename);
+}
+
+function renderModels(models, replace) {
+  const container = document.getElementById("results");
+  if (replace) container.innerHTML = "";
+
+  const bw = totalBandwidth();
+  const vram = totalVram();
+
+  for (const m of models) {
+    const card = document.createElement("div");
+    card.className = "card rounded-xl p-4 flex flex-col gap-3";
+
+    // Header
+    const header = document.createElement("div");
+    header.innerHTML = `
+      <a href="${hfModelUrl(m.id)}" target="_blank" rel="noopener"
+         class="text-white font-semibold hover:text-blue-300 transition-colors text-sm leading-tight block">
+        ${escHtml(m.id)}
+      </a>
+      <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
+        <span>&#8595; ${formatNum(m.downloads)}</span>
+        <span>&#9825; ${formatNum(m.likes)}</span>
+        <span>${relativeDate(m.lastModified)}</span>
+        ${m.pipeline_tag ? `<span class="text-gray-600">${escHtml(m.pipeline_tag)}</span>` : ""}
+      </div>
+    `;
+    card.appendChild(header);
+
+    // Badges row: max_ctx, vocab, MTP
+    const badges = [];
+    if (m.max_ctx) {
+      badges.push(`<span class="text-gray-400 bg-gray-800 px-2 py-0.5 rounded">ctx ${fmtCtx(m.max_ctx)}</span>`);
+    }
+    if (m.vocab_size && m.vocab_size > 80000) {
+      badges.push(`<span class="text-amber-300 bg-amber-900/40 border border-amber-800 px-2 py-0.5 rounded">${Math.round(m.vocab_size / 1000)}K vocab</span>`);
+    }
+    if (m.is_mtp) {
+      badges.push(`<span class="text-purple-300 bg-purple-900/40 border border-purple-800 px-2 py-0.5 rounded">MTP/Draft</span>`);
+    }
+    if (badges.length > 0) {
+      const badgeRow = document.createElement("div");
+      badgeRow.className = "flex flex-wrap gap-1.5 text-xs";
+      badgeRow.innerHTML = badges.join("");
+      card.appendChild(badgeRow);
+    }
+
+    // Tags
+    if (m.tags && m.tags.length > 0) {
+      const tagRow = document.createElement("div");
+      tagRow.className = "flex flex-wrap gap-1";
+      const shownTags = m.tags.filter(t =>
+        !t.startsWith("base_model") && !t.startsWith("dataset:") &&
+        !["gguf","endpoints_compatible","imatrix","conversational","region:us"].includes(t)
+      ).slice(0, 5);
+      shownTags.forEach(t => {
+        const span = document.createElement("span");
+        span.className = "text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded";
+        span.textContent = t;
+        tagRow.appendChild(span);
+      });
+      if (tagRow.children.length > 0) card.appendChild(tagRow);
+    }
+
+    // Quant chips
+    const quantRow = document.createElement("div");
+    quantRow.className = "flex flex-wrap gap-2 mt-1";
+
+    for (const q of m.quants) {
+      const cls = COLOR_MAP[q.color] || COLOR_MAP.gray;
+      const tps = bw > 0 ? Math.round(bw / q.size_gb) : null;
+      const kvGb = q.kv_cache_gb ?? 0;
+      const totalGb = (q.size_gb + kvGb).toFixed(1);
+      const tpsStr = tps ? ` · ~${tps} T/s` : "";
+      const url = hfFileUrl(m.id, q.filename);
+      const chip = document.createElement("a");
+      chip.href = url;
+      chip.target = "_blank";
+      chip.rel = "noopener";
+      chip.className = `quant-chip ${cls}`;
+      chip.title = `${q.size_gb} GB + ${kvGb} GB KV = ${totalGb} GB total${tpsStr}`;
+      chip.innerHTML = `
+        <span>${escHtml(q.quant)}</span>
+        <span class="opacity-70">${q.size_gb} GB</span>
+        <span class="opacity-50 text-xs">${q.label}</span>
+        ${tps ? `<span class="opacity-40 text-xs font-normal">~${tps}T/s</span>` : ""}
+      `;
+      quantRow.appendChild(chip);
+    }
+    card.appendChild(quantRow);
+
+    container.appendChild(card);
+  }
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// --- Init ---
+(async () => {
+  await loadGpus();
+  updateContext();
+  document.getElementById("status").textContent = "Select at least one GPU to see compatible models.";
+})();
+</script>
+</body>
+</html>
