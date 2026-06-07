@@ -21,14 +21,16 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .ctx-slider { -webkit-appearance: none; width: 100%; height: 4px; background: #374151; border-radius: 2px; outline: none; }
     .ctx-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
-    .vram-bar { height: 6px; border-radius: 3px; transition: width .3s; }
   </style>
 </head>
 <body class="min-h-screen">
 
 <!-- Header -->
 <div class="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-  <h1 class="text-lg font-bold text-white">HF Hardware Browser</h1>
+  <div class="flex flex-col">
+    <h1 class="text-lg font-bold text-white">HF Hardware Browser</h1>
+    <span id="last-update" class="text-[10px] text-gray-500 font-mono">Checking freshness...</span>
+  </div>
   <div id="vram-badge" class="text-sm font-mono text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full">
     0 GB VRAM selected
   </div>
@@ -36,8 +38,6 @@
 
 <!-- Controls -->
 <div class="px-6 py-4 border-b border-gray-800 space-y-4">
-
-  <!-- GPU Picker -->
   <div class="flex flex-wrap items-center gap-3">
     <span class="text-sm text-gray-400 whitespace-nowrap">GPUs (up to 4):</span>
     <div id="gpu-chips" class="flex flex-wrap gap-2"></div>
@@ -46,7 +46,6 @@
     </select>
   </div>
 
-  <!-- Context Slider -->
   <div class="flex items-center gap-4">
     <span class="text-sm text-gray-400 whitespace-nowrap">Context:</span>
     <input type="range" id="ctx-slider" class="ctx-slider" min="0" max="9" step="1" value="3" oninput="updateContext()" />
@@ -54,9 +53,8 @@
     <span id="ctx-overhead" class="text-xs text-gray-500"></span>
   </div>
 
-  <!-- KV Cache Quant -->
   <div class="flex items-center gap-4">
-    <span class="text-sm text-gray-400 whitespace-nowwrap">KV Cache:</span>
+    <span class="text-sm text-gray-400 whitespace-nowrap">KV Cache:</span>
     <select id="kv-select" class="gpu-select" onchange="setKvQuant(this.value)">
       <option value="f16">F16 (full precision)</option>
       <option value="q8">Q8 (8-bit, ½ KV)</option>
@@ -66,7 +64,6 @@
     <span id="kv-note" class="text-xs text-gray-500"></span>
   </div>
 
-  <!-- Sort + Search -->
   <div class="flex flex-wrap items-center gap-3">
     <div class="flex gap-1">
       <button class="sort-btn active" data-sort="trending" onclick="setSort('trending', this)">Trending</button>
@@ -75,13 +72,7 @@
       <button class="sort-btn" data-sort="newest" onclick="setSort('newest', this)">Newest</button>
       <button class="sort-btn" data-sort="updated" onclick="setSort('updated', this)">Updated</button>
     </div>
-    <input
-      type="text"
-      id="search-box"
-      class="search-box flex-1 min-w-40"
-      placeholder="Search models..."
-      oninput="debounceSearch()"
-    />
+    <input type="text" id="search-box" class="search-box flex-1 min-w-40" placeholder="Search models..." oninput="debounceSearch()" />
   </div>
 </div>
 
@@ -90,9 +81,7 @@
   <div id="status" class="text-sm text-gray-500 mb-3"></div>
   <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
   <div id="load-more-wrap" class="flex justify-center mt-6 hidden">
-    <button onclick="loadMore()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">
-      Load More
-    </button>
+    <button onclick="loadMore()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">Load More</button>
   </div>
   <div id="spinner" class="flex justify-center mt-8 hidden">
     <div class="spinner"></div>
@@ -100,34 +89,41 @@
 </div>
 
 <script>
-// --- Constants & State ---
-const CTX_STEPS  = [1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 196608, 262144];
+const CTX_STEPS = [1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 196608, 262144];
 const CTX_LABELS = ["1K","2K","4K","8K","16K","32K","64K","128K","192K","256K"];
 const KV_BPE = { f16: 2.0, q8: 1.0, q6: 0.75, q4: 0.5 };
 
 let state = {
-  gpus: [],       // [{name, vram, bandwidth_gbs}]
-  context: 8192,
-  kvQuant: "f16",
-  sort: "trending",
-  search: "",
-  page: 0,
-  allFilteredModels: [], 
-  pageSize: 25,
+  gpus: [], context: 8192, kvQuant: "f16", sort: "trending", search: "", page: 0, allFilteredModels: [], pageSize: 25
 };
 
 let gpuDB = {};
 let searchTimer = null;
 
-// --- GPU Logic ---
+async function loadMetadata() {
+  try {
+    const res = await fetch("data/metadata.json");
+    const meta = await res.json();
+    const lastUpdate = new Date(meta.last_updated);
+    const now = new Date();
+    const diff = Math.floor((now - lastUpdate) / 1000);
+    let timeStr = "";
+    if (diff < 60) timeStr = "just now";
+    else if (diff < 3600) timeStr = `${Math.floor(diff / 60)}m ago`;
+    else if (diff < 86400) timeStr = `${Math.floor(diff / 3600)}h ago`;
+    else timeStr = `${Math.floor(diff / 86400)}d ago`;
+    document.getElementById("last-update").textContent = `Last HF update: ${timeStr}`;
+  } catch (e) {
+    document.getElementById("last-update").textContent = "Freshness data unavailable";
+  }
+}
+
 async function loadGpus() {
   try {
     const res = await fetch("data/gpus.json");
     gpuDB = await res.json();
     populateGpuSelect();
-  } catch (e) {
-    console.error("Error loading GPUs", e);
-  }
+  } catch (e) { console.error(e); }
 }
 
 function populateGpuSelect() {
@@ -172,7 +168,7 @@ function renderGpuChips() {
   state.gpus.forEach((g, i) => {
     const chip = document.createElement("span");
     chip.className = "gpu-chip";
-    chip.innerHTML = `${g.name} <span class="text-blue-400 font-mono">${g.vram}GB</span> <button onclick="removeGpu(${i})" class="text-gray-500 hover:text-red-400 ml-1 font-bold leading-none">&times;</button>`;
+    chip.innerHTML = `${g.name} <span class="text-blue-400 font-mono">${g.vram}GB</span> <button onclick="removeGpu(${i})" class="text-gray-500 hover:text-red-400 ml-1 font-bold">&times;</button>`;
     el.appendChild(chip);
   });
   document.getElementById("gpu-select").disabled = state.gpus.length >= 4;
@@ -198,7 +194,6 @@ function updateVramBadge() {
   }
 }
 
-// --- Context & KV Logic ---
 function updateContext() {
   const idx = parseInt(document.getElementById("ctx-slider").value);
   state.context = CTX_STEPS[idx];
@@ -211,27 +206,19 @@ function updateContext() {
 function updateOverheadLabel() {
   const el = document.getElementById("ctx-overhead");
   if (state.gpus.length === 0) { el.textContent = ""; return; }
-  // Just a rough estimation for display
   const ex = 10 * 0.1 * (state.context / 8192);
   el.textContent = `(~${ex.toFixed(1)} GB overhead on a 10 GB model)`;
 }
 
-function setKvQuant(val) {
-  state.kvQuant = val;
-  updateKvNote();
-  resetAndFetch();
-}
-
+function setKvQuant(val) { state.kvQuant = val; updateKvNote(); resetAndFetch(); }
 function updateKvNote() {
   const el = document.getElementById("kv-note");
   if (state.gpus.length === 0 || state.kvQuant === "f16") { el.textContent = ""; return; }
   const f16kv = 10 * 0.1 * (state.context / 8192) * (KV_BPE.f16 / KV_BPE.f16);
   const curkv = 10 * 0.1 * (state.context / 8192) * (KV_BPE[state.kvQuant] / KV_BPE.f16);
-  const saving = f16kv - curkv;
-  el.textContent = `saves ~${saving.toFixed(1)} GB KV at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} on a 10 GB model`;
+  el.textContent = `saves ~${(f16kv - curkv).toFixed(1)} GB KV at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} on a 10 GB model`;
 }
 
-// --- Search & Sort ---
 function setSort(sort, btn) {
   document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
@@ -247,10 +234,8 @@ function debounceSearch() {
   }, 400);
 }
 
-// --- Core Fetching & Filtering ---
 function resetAndFetch() {
-  state.page = 0;
-  state.allFilteredModels = [];
+  state.page = 0; state.allFilteredModels = [];
   document.getElementById("results").innerHTML = "";
   document.getElementById("load-more-wrap").classList.add("hidden");
   fetchModels();
@@ -266,18 +251,11 @@ async function fetchModels() {
 
   state.loading = true;
   document.getElementById("spinner").classList.remove("hidden");
-  document.getElementById("status").textContent = "Loading models...";
-
-  try {
+  document.try-catch-block: try {
     const res = await fetch("data/models.json");
     const allModels = await res.json();
+    let filtered = allModels.filter(m => m.id.toLowerCase().includes(state.search.toLowerCase()));
 
-    // 1. Filter by Search
-    let filtered = allModels.filter(m => 
-      m.id.toLowerCase().includes(state.search.toLowerCase())
-    );
-
-    // 2. Filter by GPU and compute compatible quants
     const resultsWithQuants = [];
     for (const m of filtered) {
       const compatibleQuants = [];
@@ -289,106 +267,28 @@ async function fetchModels() {
         } else {
           kv = q.size_gb * 0.1 * (state.context / 8192);
         }
-        
-        if (q.size_gb + kv <= vram * 0.95) {
-          compatibleQuants.push({
-            ...q,
-            kv_cache_gb: Math.round(kv * 100) / 100
-          });
-        }
+        if (q.size_gb + kv <= vram * 0.95) compatibleQuants.push({ ...q, kv_cache_gb: Math.round(kv * 100) / 100 });
       }
-
-      if (compatibleQuants.length > 0) {
-        resultsWithQuants.push({ ...m, quants: compatibleQuants });
-      }
+      if (compatibleQuants.length > 0) resultsWithQuants.push({ ...m, quants: compatibleQuants });
     }
 
-    // 3. Sort
-    const sortFuncs = {
-      "trending":  (a, b) => b.downloads - a.downloads,
-      "downloads": (a, b) => b.downloads - a.downloads,
-      "likes": (a, b) => b.likes - a.likes,
-      "newest": (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-      "updated": (a, b) => new Date(b.lastModified) - new Date(a.lastModified),
-    };
-    const sortFn = sortFuncs[state.sort] || sortFuncs["trending"];
-    resultsWithQuants.sort(sortFn);
+    const sortFuncs = { "trending": (a,b)=>b.downloads-a.downloads, "downloads": (a,b)=>b.downloads-a.downloads, "likes": (a,b)=>b.likes-a.likes, "newest": (a,b)=>new Date(b.createdAt)-new Date(a.createdAt), "updated": (a,b)=>new Date(b.lastModified)-new Date(a.lastModified) };
+    resultsWithQuants.sort(sortFuncs[state.sort] || sortFuncs.trending);
 
-    // 4. Pagination
     state.allFilteredModels = resultsWithQuants;
-    const paginated = state.allFilteredModels.slice(0, state.page * state.pageSize + state.pageSize);
-    
-    renderModels(paginated);
-
-    if (state.allFilteredModels.length > (state.page + 1) * state.pageSize) {
-      document.getElementById("load-more-wrap").classList.remove("hidden");
-    } else {
-      document.getElementById("load-more-wrap").classList.add("hidden");
-    }
-
-    document.getElementById("status").textContent =
-      state.allFilteredModels.length > 0
-        ? `${state.allFilteredModels.length} model${state.allFilteredModels.length !== 1 ? "s" : ""} found fitting ${vram} GB VRAM at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} context`
-        : "No compatible models found for this hardware configuration.";
-
+    renderModels(state.allFilteredModels.slice(0, state.page * state.pageSize + state.pageSize));
+    document.getElementById("load-more-wrap").classList.toggle("hidden", state.allFilteredModels.length <= (state.page + 1) * state.pageSize);
+    document.getElementById("status").textContent = `${state.allFilteredModels.length} models found fitting ${vram} GB VRAM at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} context`;
   } catch (e) {
     console.error(e);
-    document.getElementById("status").textContent = "Error loading models. Please try again.";
+    document.getElementById("status").textContent = "Error loading models.";
   } finally {
     state.loading = false;
     document.getElementById("spinner").classList.add("hidden");
   }
 }
 
-function loadMore() {
-  if (state.loading) return;
-  state.page++;
-  fetchModels();
-}
-
-// --- Rendering Helpers ---
-const COLOR_MAP = {
-  red: "bg-red-900/50 text-red-300 border border-red-800",
-  orange: "bg-orange-900/50 text-orange-300 border border-orange-800",
-  amber: "bg-amber-900/50 text-amber-300 border border-amber-800",
-  yellow: "bg-yellow-900/50 text-yellow-300 border border-yellow-800",
-  lime: "bg-lime-900/50 text-lime-300 border border-lime-800",
-  green: "bg-green-900/50 text-green-300 border border-green-800",
-  teal: "bg-teal-900/50 text-teal-300 border border-teal-800",
-  blue: "bg-blue-900/50 text-blue-300 border border-blue-800",
-  gray: "bg-gray-800 text-gray-400 border border-gray-700",
-};
-
-function formatNum(n) {
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
-  return String(n);
-}
-
-function relativeDate(iso) {
-  if (!iso) return "";
-  const diff = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return "today";
-  if (days === 1) return "1d ago";
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
-function fmtCtx(n) {
-  if (!n) return "";
-  if (n >= 1024) return Math.round(n / 1024) + "K";
-  return String(n);
-}
-
-function hfModelUrl(id) { return `https://huggingface.co/${id}`; }
-function hfFileUrl(id, filename) { return `https://huggingface.co/${id}/blob/main/${encodeURIComponent(filename)}`; }
-
-function escHtml(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot");
-}
+function loadMore() { state.page++; fetchModels(); }
 
 function renderModels(models) {
   const container = document.getElementById("results");
@@ -396,57 +296,21 @@ function renderModels(models) {
   for (const m of models) {
     const card = document.createElement("div");
     card.className = "card rounded-xl p-4 flex flex-col gap-3";
-
-    const header = document.createElement("div");
-    header.innerHTML = `
-      <a href="${hfModelUrl(m.id)}" target="_blank" rel="noopener" class="text-white font-semibold hover:text-blue-300 transition-colors text-sm block">${escHtml(m.id)}</a>
-      <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
-        <span>&#8595; ${formatNum(m.downloads)}</span>
-        <span>&#9825; ${formatNum(m.likes)}</span>
-        <span>${relativeDate(m.lastModified)}</span>
-        ${m.pipeline_tag ? `<span class="text-gray-600">${escHtml(m.pipeline_tag)}</span>` : ""}
+    card.innerHTML = `
+      <div>
+        <a href="https://huggingface.co/${m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300 text-sm block">${m.id}</a>
+        <div class="flex items-center gap-3 mt-1 text-xs text-g-500">
+          <span>&#8595; ${m.downloads}</span><span>&#9825; ${m.likes}</span><span>${m.lastModified ? new Date(m.lastModified).toLocaleDateString() : ''}</span>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-1">
+        ${m.quants.map(q => `<a href="https://huggingface.co/${m.id}/blob/main/${q.filename}" target="_blank" class="quant-chip ${q.color === 'blue' ? 'bg-blue-900/50 text-blue-300 border border-blue-800' : ''}">${q.quant} ${q.size_gb}GB</a>`).join('')}
       </div>`;
-    card.appendChild(header);
-
-    const badges = [];
-    if (m.max_ctx) badges.push(`<span class="text-gray-400 bg-gray-800 px-2 py-0.5 rounded">ctx ${fmtCtx(m.max_ctx)}</span>`);
-    if (m.vocab_size && m.vocab_size > 80000) badges.push(`<span class="text-amber-300 bg-amber-900/40 border border-amber-800 px-2 py-0.5 rounded">${Math.round(m.vocab_size / 1000)}K vocab</span>`);
-    if (m.is_mtp) badges.push(`<span class="text-purple-300 bg-purple-900/40 border border-purple-800 px-2 py-0.5 rounded">MTP/Draft</span>`);
-    if (badges.length > 0) {
-      const br = document.createElement("div"); br.className = "flex flex-wrap gap-1.5 text-xs";
-      br.innerHTML = badges.join(""); card.appendChild(br);
-    }
-
-    if (m.tags && m.tags.length > 0) {
-      const tr = document.createElement("div"); tr.className = "flex flex-wrap gap-1";
-      const st = m.tags.filter(t => !t.startsWith("base_model:") && !t.startsWith("dataset:") && !["gguf","endpoints_compatible"].includes(t)).slice(0, 5);
-      st.forEach(t => {
-        const s = document.createElement("span"); s.className = "text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded"; s.textContent = t; tr.appendChild(s);
-      });
-      if (tr.children.length > 0) card.appendChild(tr);
-    }
-
-    const qr = document.createElement("div"); qr.className = "flex flex-wrap gap-2 mt-1";
-    for (const q of m.quants) {
-      const cls = COLOR_MAP[q.color] || COLOR_MAP.gray;
-      const url = hfFileUrl(m.id, q.filename);
-      const chip = document.createElement("a");
-      chip.href = url; chip.target = "_blank"; chip.rel = "noopener";
-      chip.className = `quant-chip ${cls}`;
-      chip.title = `${q.size_gb} GB + ${q.kv_cache_gb} GB KV = ${(q.size_gb + q.kv_cache_gb).toFixed(1)} GB total`;
-      chip.innerHTML = `<span>${escHtml(q.quant)}</span><span class="opacity-70">${q.size_gb} GB</span><span class="opacity-50 text-xs">${q.label}</span>`;
-      qr.appendChild(chip);
-    }
-    card.appendChild(qr);
     container.appendChild(card);
   }
 }
 
-// --- Init ---
-(async () => {
-  await loadGpus();
-  resetAndFetch();
-})();
+(async () => { await loadGpus(); await loadMetadata(); resetAndFetch(); })();
 </script>
 </body>
 </html>
