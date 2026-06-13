@@ -262,7 +262,7 @@ async function fetchModels() {
 
   state.loading = true;
   document.getElementById("spinner").classList.remove("hidden");
-  document.try-catch-block: try {
+  try {
     const res = await fetch("data/models.json");
     const allModels = await res.json();
     let filtered = allModels.filter(m => m.id.toLowerCase().includes(state.search.toLowerCase()));
