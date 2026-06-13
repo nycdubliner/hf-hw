@@ -3,6 +3,8 @@ import os
 import re
 import time
 import json
+import sys
+from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -256,7 +258,7 @@ async def main():
     print("Starting update...")
     if not HF_TOKEN:
         print("Error: HF_TOKEN is not set.")
-        return
+        sys.exit(1)
 
     async with httpx.AsyncClient() as client:
         models_data = await fetch_gguf_candidates(client, "trending", 0, "")
@@ -306,6 +308,10 @@ async def main():
         print("Writing gpus.json")
         with open("data/gpus.json", "w") as f:
             json.dump(GPUS, f, indent=2)
+        
+        print("Writing metadata.json")
+        with open("data/metadata.json", "w") as f:
+            json.dump({"last_updated": datetime.utcnow().isoformat()}, f, indent=2)
 
     print("Done.")
 
