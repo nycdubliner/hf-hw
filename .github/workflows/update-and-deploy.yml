@@ -42,12 +42,7 @@ jobs:
           fi
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/gh-pages@v4
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: gh-pages
-          # Exclude .git and .github from the deployment
-          exclude_pattern: |
-            .git*
-            .github*
+          folder: .
+          branch: gh-pages
