@@ -1,25 +1,22 @@
-name: Update and Deploy HF Hardware Browser
+name: Update and Deploy
 
 on:
   schedule:
     - cron: '0 * * * *'
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -27,19 +24,30 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Update models
+      - name: Run update script
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python update_models.py
 
-      - name: Prepare dist
+      - name: Commit and Push data
         run: |
-          mkdir -p dist
-          cp index.html dist/
-          cp -r data dist/
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update model data [skip ci]"
+            git push
+          fi
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist
+          publish_dir: .
+          publish_branch: gh-pages
+          # Exclude .git and .github from the deployment
+          exclude_pattern: |
+            .git*
+            .github*
