@@ -5,7 +5,7 @@
     "createdAt": "2026-06-10T14:19:12.000Z",
     "lastModified": "2026-06-12T14:44:09.000Z",
     "downloads": 42885,
-    "likes": 227,
+    "likes": 228,
     "pipeline_tag": "image-text-to-text",
     "tags": [
       "gguf",
@@ -674,7 +674,7 @@
     "createdAt": "2026-05-21T06:37:47.000Z",
     "lastModified": "2026-06-02T22:22:21.000Z",
     "downloads": 168329,
-    "likes": 285,
+    "likes": 286,
     "pipeline_tag": "image-text-to-text",
     "tags": [
       "transformers",
@@ -790,6 +790,41 @@
         "label": "8-bit",
         "color": "teal",
         "size_gb": 29.05
+      }
+    ]
+  },
+  {
+    "id": "leejet/ideogram-4-GGUF",
+    "author": "leejet",
+    "createdAt": "2026-06-04T16:24:12.000Z",
+    "lastModified": "2026-06-07T04:45:37.000Z",
+    "downloads": 8736,
+    "likes": 56,
+    "pipeline_tag": "text-to-image",
+    "tags": [
+      "gguf",
+      "text-to-image",
+      "image-generation",
+      "stable-diffusion.cpp",
+      "en",
+      "zh"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 11287641664,
+        "filename": "ideogram4-Q4_0.gguf",
+        "quant": "Q4_0",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 11.29
       }
     ]
   },
@@ -987,41 +1022,6 @@
         "label": "8-bit",
         "color": "teal",
         "size_gb": 35.78
-      }
-    ]
-  },
-  {
-    "id": "leejet/ideogram-4-GGUF",
-    "author": "leejet",
-    "createdAt": "2026-06-04T16:24:12.000Z",
-    "lastModified": "2026-06-07T04:45:37.000Z",
-    "downloads": 8736,
-    "likes": 56,
-    "pipeline_tag": "text-to-image",
-    "tags": [
-      "gguf",
-      "text-to-image",
-      "image-generation",
-      "stable-diffusion.cpp",
-      "en",
-      "zh"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 11287641664,
-        "filename": "ideogram4-Q4_0.gguf",
-        "quant": "Q4_0",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 11.29
       }
     ]
   },
@@ -1273,7 +1273,7 @@
     "createdAt": "2026-06-10T07:24:02.000Z",
     "lastModified": "2026-06-11T07:50:17.000Z",
     "downloads": 2433,
-    "likes": 46,
+    "likes": 47,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -2310,6 +2310,43 @@
     ]
   },
   {
+    "id": "Janvitos/gemma-4-12B-it-qat-assistant-MTP-Q8_0-GGUF",
+    "author": "Janvitos",
+    "createdAt": "2026-06-06T17:51:48.000Z",
+    "lastModified": "2026-06-06T19:33:38.000Z",
+    "downloads": 26868,
+    "likes": 26,
+    "pipeline_tag": "",
+    "tags": [
+      "gguf",
+      "llama.cpp",
+      "gemma",
+      "gemma-4",
+      "qat",
+      "mtp",
+      "draft-model",
+      "assistant"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "is_mtp": true,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 465127040,
+        "filename": "gemma-4-12B-it-qat-assistant-MTP-Q8_0.gguf",
+        "quant": "Q8_0",
+        "label": "8-bit",
+        "color": "teal",
+        "size_gb": 0.47
+      }
+    ]
+  },
+  {
     "id": "ggml-org/gemma-4-12B-it-GGUF",
     "author": "ggml-org",
     "createdAt": "2026-06-03T15:12:37.000Z",
@@ -2358,49 +2395,12 @@
     ]
   },
   {
-    "id": "Janvitos/gemma-4-12B-it-qat-assistant-MTP-Q8_0-GGUF",
-    "author": "Janvitos",
-    "createdAt": "2026-06-06T17:51:48.000Z",
-    "lastModified": "2026-06-06T19:33:38.000Z",
-    "downloads": 26868,
-    "likes": 26,
-    "pipeline_tag": "",
-    "tags": [
-      "gguf",
-      "llama.cpp",
-      "gemma",
-      "gemma-4",
-      "qat",
-      "mtp",
-      "draft-model",
-      "assistant"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "is_mtp": true,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 465127040,
-        "filename": "gemma-4-12B-it-qat-assistant-MTP-Q8_0.gguf",
-        "quant": "Q8_0",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 0.47
-      }
-    ]
-  },
-  {
     "id": "yuxinlu1/gemma-4-12B-it-Claude-4.6-4.8-Opus-GGUF",
     "author": "yuxinlu1",
     "createdAt": "2026-06-04T06:31:02.000Z",
     "lastModified": "2026-06-08T03:18:47.000Z",
     "downloads": 18857,
-    "likes": 43,
+    "likes": 44,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -2545,51 +2545,6 @@
         "label": "?-bit",
         "color": "gray",
         "size_gb": 0.38
-      }
-    ]
-  },
-  {
-    "id": "igorls/gemma-4-12B-it-heretic-GGUF",
-    "author": "igorls",
-    "createdAt": "2026-06-04T02:41:48.000Z",
-    "lastModified": "2026-06-04T11:58:49.000Z",
-    "downloads": 37711,
-    "likes": 34,
-    "pipeline_tag": "text-generation",
-    "tags": [
-      "gguf",
-      "heretic",
-      "uncensored",
-      "decensored",
-      "abliterated",
-      "gemma-4",
-      "llama.cpp",
-      "ollama"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 7381381760,
-        "filename": "gemma-4-12B-it-heretic-Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 7.38
-      },
-      {
-        "size_bytes": 12669645440,
-        "filename": "gemma-4-12B-it-heretic-Q8_0.gguf",
-        "quant": "Q8_0",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 12.67
       }
     ]
   },
@@ -2795,6 +2750,51 @@
         "label": "?-bit",
         "color": "gray",
         "size_gb": 0.51
+      }
+    ]
+  },
+  {
+    "id": "igorls/gemma-4-12B-it-heretic-GGUF",
+    "author": "igorls",
+    "createdAt": "2026-06-04T02:41:48.000Z",
+    "lastModified": "2026-06-04T11:58:49.000Z",
+    "downloads": 37711,
+    "likes": 34,
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "gguf",
+      "heretic",
+      "uncensored",
+      "decensored",
+      "abliterated",
+      "gemma-4",
+      "llama.cpp",
+      "ollama"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 7381381760,
+        "filename": "gemma-4-12B-it-heretic-Q4_K_M.gguf",
+        "quant": "Q4_K_M",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 7.38
+      },
+      {
+        "size_bytes": 12669645440,
+        "filename": "gemma-4-12B-it-heretic-Q8_0.gguf",
+        "quant": "Q8_0",
+        "label": "8-bit",
+        "color": "teal",
+        "size_gb": 12.67
       }
     ]
   },
