@@ -92,6 +92,17 @@
 const CTX_STEPS = [1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 196608, 262144];
 const CTX_LABELS = ["1K","2K","4K","8K","16K","32K","64K","128K","192K","256K"];
 const KV_BPE = { f16: 2.0, q8: 1.0, q6: 0.75, q4: 0.5 };
+const COLOR_MAP = {
+  red: "bg-red-900/50 text-red-300 border-red-800",
+  orange: "bg-orange-900/50 text-orange-300 border-orange-800",
+  amber: "bg-amber-900/50 text-amber-300 border-amber-800",
+  yellow: "bg-yellow-900/50 text-yellow-300 border-yellow-800",
+  lime: "bg-lime-900/50 text-lime-300 border-lime-800",
+  green: "bg-green-900/50 text-green-300 border-green-800",
+  teal: "bg-teal-900/50 text-teal-300 border-teal-800",
+  blue: "bg-blue-900/50 text-blue-300 border-blue-800",
+  gray: "bg-gray-900/50 text-gray-300 border-gray-800",
+};
 
 let state = {
   gpus: [], context: 8192, kvQuant: "f16", sort: "trending", search: "", page: 0, allFilteredModels: [], pageSize: 25
@@ -299,12 +310,17 @@ function renderModels(models) {
     card.innerHTML = `
       <div>
         <a href="https://huggingface.co/${m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300 text-sm block">${m.id}</a>
-        <div class="flex items-center gap-3 mt-1 text-xs text-g-500">
-          <span>&#8595; ${m.downloads}</span><span>&#9825; ${m.likes}</span><span>${m.lastModified ? new Date(m.lastModified).toLocaleDateString() : ''}</span>
+        <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
+          <span class="flex items-center gap-1">&#8595; ${m.downloads}</span>
+          <span class="flex items-center gap-1">&#9825; ${m.likes}</span>
+          <span class="text-gray-600">${m.lastModified ? new Date(m.lastModified).toLocaleDateString() : ''}</span>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 mt-1">
-        ${m.quants.map(q => `<a href="https://huggingface.co/${m.id}/blob/main/${q.filename}" target="_blank" class="quant-chip ${q.color === 'blue' ? 'bg-blue-900/50 text-blue-300 border border-blue-800' : ''}">${q.quant} ${q.size_gb}GB</a>`).join('')}
+        ${m.quants.map(q => {
+          const colorClass = COLOR_MAP[q.color] || COLOR_MAP.gray;
+          return `<a href="https://huggingface.co/${m.id}/blob/main/${q.filename}" target="_blank" class="quant-chip ${colorClass}">${q.quant} ${q.size_gb}GB</a>`;
+        }).join('')}
       </div>`;
     container.appendChild(card);
   }
