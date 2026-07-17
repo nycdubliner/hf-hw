@@ -10,17 +10,24 @@
     .card { background: #1a1f2e; border: 1px solid #2d3748; }
     .quant-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: opacity .15s; }
     .quant-chip:hover { opacity: 0.8; }
+    .quant-chip.frontier { box-shadow: 0 0 0 2px #fbbf24; }
     .gpu-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #2d3748; border-radius: 9999px; font-size: 0.8rem; }
-    .sort-btn { padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: 1px solid #374151; background: transparent; color: #94a3b8; transition: all .15s; }
-    .sort-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-    .sort-btn:hover:not(.active) { background: #1e2433; }
+    .sort-btn, .tab-btn { padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: 1px solid #374151; background: transparent; color: #94a3b8; transition: all .15s; }
+    .sort-btn.active, .tab-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+    .sort-btn:hover:not(.active), .tab-btn:hover:not(.active) { background: #1e2433; }
+    .tab-btn.active { background: #7c3aed; border-color: #7c3aed; }
     select.gpu-select { background: #1a1f2e; border: 1px solid #374151; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; }
     input.search-box { background: #1a1f2e; border: 1px solid #374151; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; }
     input.search-box:focus { outline: none; border-color: #3b82f6; }
     .spinner { width: 32px; height: 32px; border: 3px solid #374151; border-top-color: #3b82f6; border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .ctx-slider { -webkit-appearance: none; width: 100%; height: 4px; background: #374151; border-radius: 2px; outline: none; }
-    .ctx-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
+    .ctx-slider, .w-slider { -webkit-appearance: none; height: 4px; background: #374151; border-radius: 2px; outline: none; }
+    .ctx-slider::-webkit-slider-thumb, .w-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
+    .cap-bar { height: 5px; border-radius: 3px; background: #374151; overflow: hidden; }
+    .cap-bar > div { height: 100%; background: linear-gradient(90deg,#3b82f6,#22c55e); }
+    #chart-tip { position: fixed; pointer-events: none; background: #0b0e14; border: 1px solid #374151; border-radius: 8px; padding: 8px 10px; font-size: 0.72rem; z-index: 50; display: none; max-width: 280px; }
+    .dot { cursor: pointer; }
+    .dot:hover { stroke: #fff; stroke-width: 1.5; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -48,7 +55,7 @@
 
   <div class="flex items-center gap-4">
     <span class="text-sm text-gray-400 whitespace-nowrap">Context:</span>
-    <input type="range" id="ctx-slider" class="ctx-slider" min="0" max="9" step="1" value="3" oninput="updateContext()" />
+    <input type="range" id="ctx-slider" class="ctx-slider w-full" min="0" max="9" step="1" value="3" oninput="updateContext()" />
     <span id="ctx-label" class="text-sm font-mono text-blue-300 whitespace-nowrap w-28">8K tokens</span>
     <span id="ctx-overhead" class="text-xs text-gray-500"></span>
   </div>
@@ -57,36 +64,73 @@
     <span class="text-sm text-gray-400 whitespace-nowrap">KV Cache:</span>
     <select id="kv-select" class="gpu-select" onchange="setKvQuant(this.value)">
       <option value="f16">F16 (full precision)</option>
-      <option value="q8">Q8 (8-bit, ½ KV)</option>
-      <option value="q6">Q6 (6-bit, ¾ KV)</option>
-      <option value="q4">Q4 (4-bit, ¼ KV)</option>
+      <option value="q8">Q8 (8-bit, &frac12; KV)</option>
+      <option value="q6">Q6 (6-bit, &frac34; KV)</option>
+      <option value="q4">Q4 (4-bit, &frac14; KV)</option>
     </select>
     <span id="kv-note" class="text-xs text-gray-500"></span>
   </div>
 
+  <!-- Use case -->
   <div class="flex flex-wrap items-center gap-3">
+    <span class="text-sm text-gray-400 whitespace-nowrap">Best for:</span>
+    <div id="usecase-tabs" class="flex flex-wrap gap-1"></div>
+  </div>
+
+  <!-- Frontier controls -->
+  <div class="flex flex-wrap items-center gap-4">
     <div class="flex gap-1">
-      <button class="sort-btn active" data-sort="trending" onclick="setSort('trending', this)">Trending</button>
+      <button class="tab-btn active" data-view="list" onclick="setView('list', this)">List</button>
+      <button class="tab-btn" data-view="chart" onclick="setView('chart', this)">Chart</button>
+    </div>
+    <label class="text-sm text-gray-400 flex items-center gap-2">
+      <input type="checkbox" id="frontier-only" onchange="setFrontierOnly(this.checked)" /> Pareto frontier only
+    </label>
+    <label class="text-sm text-gray-400 flex items-center gap-2">
+      <input type="checkbox" id="show-estimated" checked onchange="setShowEstimated(this.checked)" /> Show estimated (unbenchmarked)
+    </label>
+    <div id="costaxis-wrap" class="flex items-center gap-2">
+      <span class="text-sm text-gray-400">Cost axis:</span>
+      <div class="flex gap-1">
+        <button class="sort-btn active" data-cost="speed" onclick="setCostAxis('speed', this)">Speed (tok/s)</button>
+        <button class="sort-btn" data-cost="size" onclick="setCostAxis('size', this)">Size (GB)</button>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-1 min-w-56">
+      <span class="text-xs text-gray-500 whitespace-nowrap">Speed</span>
+      <input type="range" id="w-slider" class="w-slider flex-1" min="0" max="100" step="5" value="60" oninput="setWeight(this.value)" />
+      <span class="text-xs text-gray-500 whitespace-nowrap">Capability</span>
+    </div>
+  </div>
+
+  <!-- Sorts -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="flex gap-1 flex-wrap">
+      <button class="sort-btn active" data-sort="capability" onclick="setSort('capability', this)">Capability</button>
+      <button class="sort-btn" data-sort="speed" onclick="setSort('speed', this)">Speed</button>
+      <button class="sort-btn" data-sort="capgb" onclick="setSort('capgb', this)">Capability / GB</button>
+      <button class="sort-btn" data-sort="trending" onclick="setSort('trending', this)">Trending</button>
       <button class="sort-btn" data-sort="downloads" onclick="setSort('downloads', this)">Downloads</button>
       <button class="sort-btn" data-sort="likes" onclick="setSort('likes', this)">Likes</button>
       <button class="sort-btn" data-sort="newest" onclick="setSort('newest', this)">Newest</button>
-      <button class="sort-btn" data-sort="updated" onclick="setSort('updated', this)">Updated</button>
     </div>
     <input type="text" id="search-box" class="search-box flex-1 min-w-40" placeholder="Search models..." oninput="debounceSearch()" />
   </div>
 </div>
 
+<!-- Recommended -->
+<div id="recommended" class="px-6 pt-4 hidden"></div>
+
 <!-- Results -->
 <div class="px-6 py-4">
   <div id="status" class="text-sm text-gray-500 mb-3"></div>
+  <div id="chart-wrap" class="hidden mb-6"></div>
   <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-  <div id="load-more-wrap" class="flex justify-center mt-6 hidden">
-    <button onclick="loadMore()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">Load More</button>
-  </div>
-  <div id="spinner" class="flex justify-center mt-8 hidden">
-    <div class="spinner"></div>
-  </div>
+  <div id="unrated-wrap" class="mt-8 hidden"></div>
+  <div id="spinner" class="flex justify-center mt-8 hidden"><div class="spinner"></div></div>
 </div>
+
+<div id="chart-tip"></div>
 
 <script>
 const CTX_STEPS = [1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 196608, 262144];
@@ -104,45 +148,139 @@ const COLOR_MAP = {
   gray: "bg-gray-900/50 text-gray-300 border-gray-800",
 };
 
+// Use-case axes -> capability score key
+const USE_CASES = [
+  { key: "coding",    label: "Coding" },
+  { key: "general",   label: "General / chat" },
+  { key: "reasoning", label: "Reasoning / math" },
+  { key: "vision",    label: "Multimodal (vision)" },
+  { key: "agentic",   label: "Agentic / tools" },
+  { key: "creative",  label: "Creative" },
+  { key: "longctx",   label: "Long context" },
+];
+
+// Quant quality-retention curve (fraction of full-precision capability retained).
+// Heuristic, grounded in perplexity deltas; tunable. Ordered specific-first.
+const RETENTION = [
+  ["BF16",1.0],["F16",1.0],["Q8",0.998],["Q6",0.995],["Q5",0.99],
+  ["IQ4",0.965],["NVFP4",0.955],["MXFP4",0.95],["Q4",0.975],
+  ["IQ3",0.90],["Q3",0.905],["IQ2",0.78],["TQ2",0.70],["Q2",0.80],
+  ["IQ1",0.62],["TQ1",0.58],
+];
+function quantRetention(q) {
+  const u = (q || "").toUpperCase();
+  for (const [p, r] of RETENTION) if (u.startsWith(p)) return r;
+  return 0.9;
+}
+
+// realized fraction of theoretical bandwidth for decode tok/s
+const BW_EFFICIENCY = 0.8;
+
 let state = {
-  gpus: [], context: 8192, kvQuant: "f16", sort: "trending", search: "", page: 0, allFilteredModels: [], pageSize: 25
+  gpus: [], context: 8192, kvQuant: "f16",
+  useCase: "coding", view: "list", costAxis: "speed",
+  frontierOnly: false, weight: 0.6, showEstimated: true,
+  sort: "capability", search: "", allModels: null, capIndex: null, familyAxisMax: {},
 };
+
+// Known model families for the heuristic fallback (name -> family root).
+const FAMILY_KEYS = ["qwen","llama","gemma","mistral","mixtral","deepseek","phi","glm",
+  "command","granite","internvl","pixtral","minicpm","molmo","smolvlm","gptoss","yi","cohere","kimi"];
+function familyOf(name) {
+  const n = normId(name);
+  for (const f of FAMILY_KEYS) if (n.includes(f)) return f;
+  return null;
+}
+// axis-specific sensitivity to parameter count
+const SIZE_W = { coding: 1.0, reasoning: 1.0, general: 0.9, agentic: 0.9, longctx: 0.7, creative: 0.6, vision: 0.8 };
+
+// Estimate a 0-100 capability for a model with no measured score on `axis`.
+// Blends a size baseline, a recency bump, a same-family prior, domain-tag hints,
+// and a small popularity nudge. Capped below the measured ceiling so measured
+// top models always outrank estimates.
+function estimateCapability(m, cap, axis) {
+  const p = m.params_active_b || m.params_b || (cap && (cap.params_active_b || cap.params_b)) || null;
+  const w = SIZE_W[axis] || 0.9;
+  let base = p ? 30 + w * 22 * Math.log10(Math.max(1, p)) : 45;
+  const ageDays = m.createdAt ? (Date.now() - new Date(m.createdAt)) / 86400000 : 400;
+  const rec = ageDays < 90 ? 12 : ageDays < 180 ? 9 : ageDays < 365 ? 5 : ageDays < 730 ? 2 : 0;
+  let est = base + rec;
+  const fam = familyOf(m.base_model || m.id);
+  const famScore = fam && state.familyAxisMax[fam] ? state.familyAxisMax[fam][axis] : null;
+  if (famScore != null) est = 0.5 * est + 0.5 * (famScore + Math.min(6, rec)); // inherit family's proven level + small newer bump
+  const hay = ((m.tags || []).join(" ") + " " + (m.id || "")).toLowerCase();
+  if (axis === "coding" && /cod(er|ing)/.test(hay)) est += 8;
+  if (axis === "reasoning" && /(reason|thinking|\br1\b|distill|math)/.test(hay)) est += 6;
+  if (axis === "creative" && /(roleplay|\brp\b|story|writer|creative|uncensored)/.test(hay)) est += 6;
+  if (axis === "agentic" && /(agent|tool|function.?call)/.test(hay)) est += 5;
+  if (m.downloads > 200000) est += 3; else if (m.downloads > 50000) est += 1;
+  return Math.max(10, Math.min(90, Math.round(est)));
+}
 
 let gpuDB = {};
 let searchTimer = null;
 
+/* ---------- data loading ---------- */
 async function loadMetadata() {
   try {
-    const res = await fetch("data/metadata.json");
-    const meta = await res.json();
-    const lastUpdate = new Date(meta.last_updated);
-    const now = new Date();
-    const diff = Math.floor((now - lastUpdate) / 1000);
-    let timeStr = "";
-    if (diff < 60) timeStr = "just now";
-    else if (diff < 3600) timeStr = `${Math.floor(diff / 60)}m ago`;
-    else if (diff < 86400) timeStr = `${Math.floor(diff / 3600)}h ago`;
-    else timeStr = `${Math.floor(diff / 86400)}d ago`;
-    document.getElementById("last-update").textContent = `Last HF update: ${timeStr}`;
-  } catch (e) {
-    document.getElementById("last-update").textContent = "Freshness data unavailable";
-  }
+    const meta = await (await fetch("data/metadata.json")).json();
+    const diff = Math.floor((Date.now() - new Date(meta.last_updated)) / 1000);
+    let t = diff < 60 ? "just now" : diff < 3600 ? `${Math.floor(diff/60)}m ago`
+          : diff < 86400 ? `${Math.floor(diff/3600)}h ago` : `${Math.floor(diff/86400)}d ago`;
+    document.getElementById("last-update").textContent = `Last HF update: ${t}`;
+  } catch (e) { document.getElementById("last-update").textContent = "Freshness data unavailable"; }
 }
-
 async function loadGpus() {
+  try { gpuDB = await (await fetch("data/gpus.json")).json(); populateGpuSelect(); }
+  catch (e) { console.error(e); }
+}
+async function loadModels() {
+  if (state.allModels) return;
+  state.allModels = await (await fetch("data/models.json")).json();
+}
+async function loadCapabilities() {
+  if (state.capIndex) return;
+  const idx = { byKey: {}, aliases: [] };
   try {
-    const res = await fetch("data/gpus.json");
-    gpuDB = await res.json();
-    populateGpuSelect();
-  } catch (e) { console.error(e); }
+    const caps = await (await fetch("data/capabilities.json")).json();
+    const list = Array.isArray(caps) ? caps : (caps.models || []);
+    for (const e of list) {
+      const keys = [e.base_model, ...(e.aliases || [])].filter(Boolean);
+      for (const k of keys) {
+        const n = normId(k);
+        idx.byKey[n] = e;
+        if (n.length >= 8) idx.aliases.push([n, e]);
+      }
+      // family-prior index: best measured score per family per axis
+      const fam = familyOf(e.base_model);
+      if (fam && e.scores) {
+        const fm = state.familyAxisMax[fam] || (state.familyAxisMax[fam] = {});
+        for (const [ax, v] of Object.entries(e.scores))
+          if (v != null && (fm[ax] == null || v > fm[ax])) fm[ax] = v;
+      }
+    }
+  } catch (e) { console.warn("no capabilities.json", e); }
+  state.capIndex = idx;
+}
+function normId(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+
+function matchCap(m) {
+  const idx = state.capIndex;
+  if (!idx) return null;
+  if (m.base_model) { const e = idx.byKey[normId(m.base_model)]; if (e) return e; }
+  const nid = normId((m.id || "").replace(/gguf/ig, ""));
+  let best = null;
+  for (const [k, e] of idx.aliases) if (nid.includes(k) && (!best || k.length > best[0])) best = [k.length, e];
+  return best ? best[1] : null;
 }
 
+/* ---------- GPU controls ---------- */
 function populateGpuSelect() {
   const sel = document.getElementById("gpu-select");
   for (const [mfr, series] of Object.entries(gpuDB)) {
     for (const [seriesName, cards] of Object.entries(series)) {
       const group = document.createElement("optgroup");
-      group.label = `${mfr} — ${seriesName}`;
+      group.label = `${mfr} - ${seriesName}`;
       for (const card of cards) {
         const opt = document.createElement("option");
         opt.value = JSON.stringify(card);
@@ -153,29 +291,18 @@ function populateGpuSelect() {
     }
   }
 }
-
 function addGpu(valStr) {
   if (!valStr || state.gpus.length >= 4) return;
-  const card = JSON.parse(valStr);
-  state.gpus.push(card);
+  state.gpus.push(JSON.parse(valStr));
   document.getElementById("gpu-select").value = "";
-  renderGpuChips();
-  updateVramBadge();
-  updateKvNote();
-  resetAndFetch();
+  renderGpuChips(); updateVramBadge(); updateKvNote(); render();
 }
-
 function removeGpu(idx) {
   state.gpus.splice(idx, 1);
-  renderGpuChips();
-  updateVramBadge();
-  updateKvNote();
-  resetAndFetch();
+  renderGpuChips(); updateVramBadge(); updateKvNote(); render();
 }
-
 function renderGpuChips() {
-  const el = document.getElementById("gpu-chips");
-  el.innerHTML = "";
+  const el = document.getElementById("gpu-chips"); el.innerHTML = "";
   state.gpus.forEach((g, i) => {
     const chip = document.createElement("span");
     chip.className = "gpu-chip";
@@ -184,20 +311,17 @@ function renderGpuChips() {
   });
   document.getElementById("gpu-select").disabled = state.gpus.length >= 4;
 }
-
 function totalVram() { return state.gpus.reduce((s, g) => s + g.vram, 0); }
 function totalBandwidth() {
   const bws = state.gpus.map(g => g.bandwidth_gbs || 0);
   const total = bws.reduce((s, b) => s + b, 0);
   return bws.length > 1 ? total * 0.65 : total * 0.85;
 }
-
 function updateVramBadge() {
-  const vram = totalVram();
-  const bw = totalBandwidth();
+  const vram = totalVram(), bw = totalBandwidth();
   const el = document.getElementById("vram-badge");
   if (vram > 0) {
-    el.textContent = `${vram} GB VRAM · ${Math.round(bw)} GB/s`;
+    el.textContent = `${vram} GB VRAM - ${Math.round(bw)} GB/s`;
     el.className = "text-sm font-mono text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full";
   } else {
     el.textContent = "0 GB VRAM selected";
@@ -205,128 +329,333 @@ function updateVramBadge() {
   }
 }
 
+/* ---------- context / kv ---------- */
 function updateContext() {
   const idx = parseInt(document.getElementById("ctx-slider").value);
   state.context = CTX_STEPS[idx];
   document.getElementById("ctx-label").textContent = CTX_LABELS[idx] + " tokens";
-  updateOverheadLabel();
-  updateKvNote();
-  resetAndFetch();
+  updateOverheadLabel(); updateKvNote(); render();
 }
-
 function updateOverheadLabel() {
   const el = document.getElementById("ctx-overhead");
   if (state.gpus.length === 0) { el.textContent = ""; return; }
-  const ex = 10 * 0.1 * (state.context / 8192);
-  el.textContent = `(~${ex.toFixed(1)} GB overhead on a 10 GB model)`;
+  el.textContent = `(~${(10 * 0.1 * (state.context / 8192)).toFixed(1)} GB overhead on a 10 GB model)`;
 }
-
-function setKvQuant(val) { state.kvQuant = val; updateKvNote(); resetAndFetch(); }
+function setKvQuant(val) { state.kvQuant = val; updateKvNote(); render(); }
 function updateKvNote() {
   const el = document.getElementById("kv-note");
   if (state.gpus.length === 0 || state.kvQuant === "f16") { el.textContent = ""; return; }
-  const f16kv = 10 * 0.1 * (state.context / 8192) * (KV_BPE.f16 / KV_BPE.f16);
-  const curkv = 10 * 0.1 * (state.context / 8192) * (KV_BPE[state.kvQuant] / KV_BPE.f16);
+  const f16kv = 10 * 0.1 * (state.context / 8192);
+  const curkv = f16kv * (KV_BPE[state.kvQuant] / KV_BPE.f16);
   el.textContent = `saves ~${(f16kv - curkv).toFixed(1)} GB KV at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} on a 10 GB model`;
 }
-
-function setSort(sort, btn) {
-  document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  state.sort = sort;
-  resetAndFetch();
+function kvGB(m, q) {
+  const a = m.arch || {};
+  if (a.n_layers && a.n_kv_heads && a.head_dim) {
+    const bpe = KV_BPE[state.kvQuant] || 2.0;
+    return (2 * a.n_layers * a.n_kv_heads * a.head_dim * state.context * bpe) / 1e9;
+  }
+  return q.size_gb * 0.1 * (state.context / 8192);
 }
 
+/* ---------- top controls ---------- */
+function renderUseCaseTabs() {
+  const el = document.getElementById("usecase-tabs"); el.innerHTML = "";
+  for (const uc of USE_CASES) {
+    const b = document.createElement("button");
+    b.className = "tab-btn" + (uc.key === state.useCase ? " active" : "");
+    b.textContent = uc.label;
+    b.onclick = () => { state.useCase = uc.key; renderUseCaseTabs(); render(); };
+    el.appendChild(b);
+  }
+}
+function setView(v, btn) {
+  state.view = v;
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("costaxis-wrap").style.display = v === "chart" ? "flex" : "flex";
+  render();
+}
+function setCostAxis(c, btn) {
+  state.costAxis = c;
+  document.querySelectorAll("[data-cost]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active"); render();
+}
+function setFrontierOnly(v) { state.frontierOnly = v; render(); }
+function setShowEstimated(v) { state.showEstimated = v; render(); }
+function setWeight(v) { state.weight = v / 100; render(); }
+function setSort(sort, btn) {
+  document.querySelectorAll("[data-sort]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active"); state.sort = sort; render();
+}
 function debounceSearch() {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    state.search = document.getElementById("search-box").value.trim();
-    resetAndFetch();
-  }, 400);
+  searchTimer = setTimeout(() => { state.search = document.getElementById("search-box").value.trim(); render(); }, 300);
 }
 
-function resetAndFetch() {
-  state.page = 0; state.allFilteredModels = [];
-  document.getElementById("results").innerHTML = "";
-  document.getElementById("load-more-wrap").classList.add("hidden");
-  fetchModels();
-}
+/* ---------- core: candidates + frontier ---------- */
+function buildCandidates() {
+  const vram = totalVram(), bw = totalBandwidth(), axis = state.useCase;
+  const q = state.search.toLowerCase();
+  const cands = [];
+  for (const m of state.allModels) {
+    if (q && !m.id.toLowerCase().includes(q)) continue;
+    const cap = matchCap(m);
+    const mods = (cap && cap.modalities) || m.modalities || ["text"];
+    if (axis === "vision" && !mods.includes("vision")) continue;
+    const measured = cap && cap.scores && cap.scores[axis] != null ? cap.scores[axis] : null;
+    const estimated = measured == null;
+    const baseScore = estimated ? estimateCapability(m, cap, axis) : measured;
+    const params_b = (cap && cap.params_b) || m.params_b || null;
+    const active_b = m.params_active_b || (cap && cap.params_active_b) || null;
+    const moe = (params_b && active_b) ? Math.max(0.3, active_b / params_b) : 1;
 
-async function fetchModels() {
-  if (state.loading) return;
-  const vram = totalVram();
-  if (vram === 0) {
-    document.getElementById("status").textContent = "Select at least one GPU to see compatible models.";
-    return;
-  }
-
-  state.loading = true;
-  document.getElementById("spinner").classList.remove("hidden");
-  try {
-    const res = await fetch("data/models.json");
-    const allModels = await res.json();
-    let filtered = allModels.filter(m => m.id.toLowerCase().includes(state.search.toLowerCase()));
-
-    const resultsWithQuants = [];
-    for (const m of filtered) {
-      const compatibleQuants = [];
-      for (const q of m.quants) {
-        let kv = null;
-        if (m.arch && m.arch.n_layers && m.arch.n_kv_heads && m.arch.head_dim) {
-          const bpe = KV_BPE[state.kvQuant] || 2.0;
-          kv = (2 * m.arch.n_layers * m.arch.n_kv_heads * m.arch.head_dim * state.context * bpe) / 1e9;
-        } else {
-          kv = q.size_gb * 0.1 * (state.context / 8192);
-        }
-        if (q.size_gb + kv <= vram * 0.95) compatibleQuants.push({ ...q, kv_cache_gb: Math.round(kv * 100) / 100 });
-      }
-      if (compatibleQuants.length > 0) resultsWithQuants.push({ ...m, quants: compatibleQuants });
+    for (const qt of m.quants) {
+      const kv = kvGB(m, qt);
+      const footprint = qt.size_gb + kv;
+      if (footprint > vram * 0.95) continue;
+      const ret = quantRetention(qt.quant);
+      const bytes = qt.size_gb * moe + kv;
+      const tok_s = bytes > 0 ? BW_EFFICIENCY * bw / bytes : null;
+      cands.push({ m, qt, cap, footprint, kv, ret, eff: baseScore * ret, tok_s, params_b, estimated });
     }
+  }
+  const shown = state.showEstimated ? cands : cands.filter(c => !c.estimated);
+  markFrontier(shown);
+  return { cands: shown };
+}
 
-    const sortFuncs = { "trending": (a,b)=>b.downloads-a.downloads, "downloads": (a,b)=>b.downloads-a.downloads, "likes": (a,b)=>b.likes-a.likes, "newest": (a,b)=>new Date(b.createdAt)-new Date(a.createdAt), "updated": (a,b)=>new Date(b.lastModified)-new Date(a.lastModified) };
-    resultsWithQuants.sort(sortFuncs[state.sort] || sortFuncs.trending);
-
-    state.allFilteredModels = resultsWithQuants;
-    renderModels(state.allFilteredModels.slice(0, state.page * state.pageSize + state.pageSize));
-    document.getElementById("load-more-wrap").classList.toggle("hidden", state.allFilteredModels.length <= (state.page + 1) * state.pageSize);
-    document.getElementById("status").textContent = `${state.allFilteredModels.length} models found fitting ${vram} GB VRAM at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} context`;
-  } catch (e) {
-    console.error(e);
-    document.getElementById("status").textContent = "Error loading models.";
-  } finally {
-    state.loading = false;
-    document.getElementById("spinner").classList.add("hidden");
+function markFrontier(cands) {
+  for (const c of cands) { c.frontSpeed = false; c.frontSize = false; }
+  for (const c of cands) {
+    c.frontSpeed = !cands.some(o => o !== c && o.eff >= c.eff && o.tok_s >= c.tok_s && (o.eff > c.eff || o.tok_s > c.tok_s));
+    c.frontSize  = !cands.some(o => o !== c && o.eff >= c.eff && o.footprint <= c.footprint && (o.eff > c.eff || o.footprint < c.footprint));
   }
 }
 
-function loadMore() { state.page++; fetchModels(); }
+// recommended pick: weighted blend of normalized capability and normalized cost-axis
+function pickRecommended(cands) {
+  if (!cands.length) return null;
+  const effs = cands.map(c => c.eff), costs = cands.map(c => state.costAxis === "speed" ? c.tok_s : -c.footprint);
+  const eMin = Math.min(...effs), eMax = Math.max(...effs);
+  const cMin = Math.min(...costs), cMax = Math.max(...costs);
+  const nz = (v, lo, hi) => hi > lo ? (v - lo) / (hi - lo) : 1;
+  let best = null, bestScore = -1;
+  for (let i = 0; i < cands.length; i++) {
+    const s = state.weight * nz(effs[i], eMin, eMax) + (1 - state.weight) * nz(costs[i], cMin, cMax);
+    if (s > bestScore) { bestScore = s; best = cands[i]; }
+  }
+  return best;
+}
 
-function renderModels(models) {
-  const container = document.getElementById("results");
-  container.innerHTML = "";
-  for (const m of models) {
-    const card = document.createElement("div");
-    card.className = "card rounded-xl p-4 flex flex-col gap-3";
-    card.innerHTML = `
-      <div>
-        <a href="https://huggingface.co/${m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300 text-sm block">${m.id}</a>
-        <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
-          <span class="flex items-center gap-1">&#8595; ${m.downloads}</span>
-          <span class="flex items-center gap-1">&#9825; ${m.likes}</span>
-          <span class="text-gray-600">${m.lastModified ? new Date(m.lastModified).toLocaleDateString() : ''}</span>
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-2 mt-1">
-        ${m.quants.map(q => {
-          const colorClass = COLOR_MAP[q.color] || COLOR_MAP.gray;
-          return `<a href="https://huggingface.co/${m.id}/blob/main/${q.filename}" target="_blank" class="quant-chip ${colorClass}">${q.quant} ${q.size_gb}GB</a>`;
-        }).join('')}
+/* ---------- render ---------- */
+function render() {
+  if (!state.allModels) return;
+  saveState();
+  const vram = totalVram();
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
+  const chartWrap = document.getElementById("chart-wrap");
+  const unratedWrap = document.getElementById("unrated-wrap");
+  const rec = document.getElementById("recommended");
+  results.innerHTML = ""; chartWrap.innerHTML = ""; unratedWrap.innerHTML = "";
+  chartWrap.classList.add("hidden"); unratedWrap.classList.add("hidden"); rec.classList.add("hidden");
+
+  if (vram === 0) { status.textContent = "Select at least one GPU to see compatible models."; return; }
+
+  let { cands } = buildCandidates();
+  const axisLabel = USE_CASES.find(u => u.key === state.useCase).label;
+
+  if (state.frontierOnly) cands = cands.filter(c => c.frontSpeed || c.frontSize);
+
+  // recommended pick
+  const best = pickRecommended(cands);
+  if (best) {
+    rec.classList.remove("hidden");
+    rec.innerHTML = `
+      <div class="card rounded-xl p-4 border-yellow-600/60">
+        <div class="text-xs uppercase tracking-wide text-yellow-500 mb-1">Recommended for ${axisLabel} - ${Math.round(state.weight*100)}% capability weight</div>
+        <a href="https://huggingface.co/${best.m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300">${best.m.id}</a>
+        <span class="quant-chip ${COLOR_MAP[best.qt.color]||COLOR_MAP.gray} ml-2">${best.qt.quant} ${best.qt.size_gb}GB</span>
+        <span class="text-sm text-gray-400 ml-2">cap ${best.eff.toFixed(0)}/100${best.estimated?' <span class="text-gray-500">(est.)</span>':''} - ~${fmtTok(best.tok_s)} tok/s - ${best.footprint.toFixed(1)} GB total</span>
       </div>`;
-    container.appendChild(card);
   }
+
+  // group candidates by model for the list; compute per-model best eff
+  const byModel = new Map();
+  for (const c of cands) {
+    if (!byModel.has(c.m.id)) byModel.set(c.m.id, { m: c.m, fit: [], bestEff: -1, bestTok: 0, onFrontier: false, estimated: c.estimated });
+    const g = byModel.get(c.m.id);
+    g.fit.push(c);
+    g.bestEff = Math.max(g.bestEff, c.eff);
+    g.bestTok = Math.max(g.bestTok, c.tok_s);
+    if (c.frontSpeed || c.frontSize) g.onFrontier = true;
+  }
+  let groups = [...byModel.values()];
+
+  const sortFuncs = {
+    capability: (a, b) => b.bestEff - a.bestEff,
+    speed:      (a, b) => b.bestTok - a.bestTok,
+    capgb:      (a, b) => (b.bestEff / minFoot(b)) - (a.bestEff / minFoot(a)),
+    trending:   (a, b) => b.m.downloads - a.m.downloads,
+    downloads:  (a, b) => b.m.downloads - a.m.downloads,
+    likes:      (a, b) => b.m.likes - a.m.likes,
+    newest:     (a, b) => new Date(b.m.createdAt) - new Date(a.m.createdAt),
+  };
+  groups.sort(sortFuncs[state.sort] || sortFuncs.capability);
+
+  const nMeasured = groups.filter(g => !g.estimated).length;
+  const nEst = groups.length - nMeasured;
+  status.textContent = `${groups.length} models (${cands.length} model+quant options) fit ${vram} GB at ${CTX_LABELS[CTX_STEPS.indexOf(state.context)]} - ${axisLabel}`
+    + ` - ${nMeasured} measured, ${nEst} estimated`;
+
+  if (state.view === "chart") {
+    chartWrap.classList.remove("hidden");
+    renderChart(chartWrap, cands, best, axisLabel);
+  }
+
+  for (const g of groups) renderCard(results, g, best);
+}
+function minFoot(g) { return Math.min(...g.fit.map(c => c.footprint)) || 1; }
+function fmtTok(t) { return t == null ? "?" : t >= 100 ? Math.round(t) : t.toFixed(1); }
+
+function renderCard(container, g, best) {
+  const m = g.m;
+  const card = document.createElement("div");
+  card.className = "card rounded-xl p-4 flex flex-col gap-3" + (g.onFrontier ? " border-yellow-700/60" : "");
+  const cap = g.fit[0] && g.fit[0].cap;
+  const capRow = (g.bestEff != null) ? `
+    <div class="mt-1">
+      <div class="flex justify-between text-xs text-gray-400 mb-1">
+        <span>capability ${g.bestEff.toFixed(0)}/100 ${g.estimated ? '<span class="text-amber-500/80">(est.)</span>' : ''}</span>
+        <span>~${fmtTok(g.bestTok)} tok/s best</span>
+      </div>
+      <div class="cap-bar" style="${g.estimated ? 'opacity:.55' : ''}"><div style="width:${Math.max(2, g.bestEff)}%"></div></div>
+    </div>` : "";
+  const modBadge = cap && cap.modalities && cap.modalities.includes("vision")
+    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-300 border border-purple-800">vision</span>` : "";
+  const estBadge = g.estimated
+    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-300 border border-amber-800" title="No benchmark match; capability estimated from size, recency, family and tags">est.</span>` : "";
+  card.innerHTML = `
+    <div>
+      <a href="https://huggingface.co/${m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300 text-sm block">${m.id}</a>
+      <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
+        <span>&#8595; ${m.downloads}</span>
+        <span>&#9825; ${m.likes}</span>
+        ${modBadge}
+        ${estBadge}
+        ${g.onFrontier ? '<span class="text-yellow-500">&#9733; frontier</span>' : ''}
+        <span class="text-gray-600">${m.lastModified ? new Date(m.lastModified).toLocaleDateString() : ''}</span>
+      </div>
+    </div>
+    ${capRow}
+    <div class="flex flex-wrap gap-2 mt-1">
+      ${g.fit.slice().sort((a,b)=>b.qt.size_gb-a.qt.size_gb).map(c => {
+        const cc = COLOR_MAP[c.qt.color] || COLOR_MAP.gray;
+        const fr = (c.frontSpeed || c.frontSize) ? " frontier" : "";
+        const star = (best && best.m.id===m.id && best.qt.quant===c.qt.quant) ? "&#9733; " : "";
+        const title = `${c.qt.quant} - ${c.qt.size_gb}GB weights + ${c.kv.toFixed(1)}GB KV = ${c.footprint.toFixed(1)}GB - ~${fmtTok(c.tok_s)} tok/s${c.eff!=null?` - cap ${c.eff.toFixed(0)}`:''}`;
+        return `<a href="https://huggingface.co/${m.id}/blob/main/${c.qt.filename}" target="_blank" title="${title}" class="quant-chip ${cc}${fr}">${star}${c.qt.quant} ${c.qt.size_gb}GB - ${fmtTok(c.tok_s)}t/s</a>`;
+      }).join('')}
+    </div>`;
+  container.appendChild(card);
 }
 
-(async () => { await loadGpus(); await loadMetadata(); resetAndFetch(); })();
+/* ---------- SVG scatter chart ---------- */
+function renderChart(wrap, cands, best, axisLabel) {
+  if (!cands.length) { wrap.innerHTML = '<div class="text-sm text-gray-500">No rated models fit.</div>'; return; }
+  const W = wrap.clientWidth || 900, H = 420, pad = { l: 48, r: 16, t: 16, b: 44 };
+  const speed = state.costAxis === "speed";
+  const xOf = c => speed ? c.tok_s : c.footprint;
+  const xs = cands.map(xOf), ys = cands.map(c => c.eff);
+  let xMin = Math.min(...xs), xMax = Math.max(...xs);
+  let yMin = Math.min(...ys), yMax = Math.max(...ys);
+  if (xMax === xMin) xMax = xMin + 1;
+  yMin = Math.max(0, yMin - 5); yMax = Math.min(100, yMax + 5);
+  const px = v => pad.l + (v - xMin) / (xMax - xMin) * (W - pad.l - pad.r);
+  const py = v => H - pad.b - (v - yMin) / (yMax - yMin) * (H - pad.t - pad.b);
+
+  const frontKey = speed ? "frontSpeed" : "frontSize";
+  const front = cands.filter(c => c[frontKey]).sort((a, b) => xOf(a) - xOf(b));
+  const line = front.map(c => `${px(xOf(c)).toFixed(1)},${py(c.eff).toFixed(1)}`).join(" ");
+
+  const grid = [];
+  for (let i = 0; i <= 4; i++) {
+    const yy = yMin + (yMax - yMin) * i / 4, y = py(yy);
+    grid.push(`<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#1f2937"/><text x="${pad.l-6}" y="${y+3}" fill="#6b7280" font-size="10" text-anchor="end">${yy.toFixed(0)}</text>`);
+    const xx = xMin + (xMax - xMin) * i / 4, x = px(xx);
+    grid.push(`<line x1="${x}" y1="${pad.t}" x2="${x}" y2="${H-pad.b}" stroke="#1f2937"/><text x="${x}" y="${H-pad.b+16}" fill="#6b7280" font-size="10" text-anchor="middle">${speed ? xx.toFixed(0) : xx.toFixed(1)}</text>`);
+  }
+  const dots = cands.map((c, i) => {
+    const onF = c[frontKey];
+    const isBest = best && c.m.id === best.m.id && c.qt.quant === best.qt.quant;
+    const r = isBest ? 7 : onF ? 5 : 3.5;
+    const color = isBest ? "#fbbf24" : onF ? "#22c55e" : "#3b82f6";
+    // estimated points drawn hollow (stroke only) so measured vs estimated is legible
+    if (c.estimated) {
+      return `<circle class="dot" cx="${px(xOf(c)).toFixed(1)}" cy="${py(c.eff).toFixed(1)}" r="${r}" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="2 2" data-i="${i}"/>`;
+    }
+    return `<circle class="dot" cx="${px(xOf(c)).toFixed(1)}" cy="${py(c.eff).toFixed(1)}" r="${r}" fill="${color}" fill-opacity="${onF?0.95:0.55}" data-i="${i}"/>`;
+  }).join("");
+
+  wrap.innerHTML = `
+    <div class="text-xs text-gray-500 mb-1">Capability (${axisLabel}) vs ${speed ? "decode speed (tok/s, higher-right better)" : "footprint (GB, higher-left better)"} - green = frontier, gold = recommended, hollow = estimated</div>
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="background:#12151f;border:1px solid #2d3748;border-radius:10px">
+      ${grid.join("")}
+      ${front.length > 1 ? `<polyline points="${line}" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4 3"/>` : ""}
+      ${dots}
+      <text x="${(W)/2}" y="${H-4}" fill="#9ca3af" font-size="11" text-anchor="middle">${speed ? "tokens / sec (estimated)" : "total VRAM footprint (GB)"}</text>
+    </svg>`;
+  const tip = document.getElementById("chart-tip");
+  wrap.querySelectorAll("circle.dot").forEach(el => {
+    el.addEventListener("mousemove", ev => {
+      const c = cands[+el.dataset.i];
+      tip.style.display = "block"; tip.style.left = (ev.clientX + 14) + "px"; tip.style.top = (ev.clientY + 14) + "px";
+      tip.innerHTML = `<div class="text-white font-semibold">${c.m.id}</div><div class="text-gray-400">${c.qt.quant} - cap ${c.eff.toFixed(0)}/100${c.estimated?' (est.)':''} - ~${fmtTok(c.tok_s)} tok/s - ${c.footprint.toFixed(1)} GB</div>`;
+    });
+    el.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+    el.addEventListener("click", () => window.open(`https://huggingface.co/${cands[+el.dataset.i].m.id}`, "_blank"));
+  });
+}
+
+/* ---------- persistence ---------- */
+const LS_KEY = "hfhw_state_v1";
+const PERSIST = ["gpus","context","kvQuant","useCase","view","costAxis","frontierOnly","showEstimated","weight","sort","search"];
+function saveState() {
+  try {
+    const o = {}; for (const k of PERSIST) o[k] = state[k];
+    localStorage.setItem(LS_KEY, JSON.stringify(o));
+  } catch (e) {}
+}
+function loadState() {
+  try {
+    const o = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (o && typeof o === "object") for (const k of PERSIST) if (o[k] !== undefined) state[k] = o[k];
+  } catch (e) {}
+}
+// reflect restored state into the DOM controls
+function restoreControls() {
+  renderGpuChips(); updateVramBadge(); updateKvNote(); updateOverheadLabel();
+  const ci = CTX_STEPS.indexOf(state.context);
+  if (ci >= 0) { document.getElementById("ctx-slider").value = ci; document.getElementById("ctx-label").textContent = CTX_LABELS[ci] + " tokens"; }
+  document.getElementById("kv-select").value = state.kvQuant;
+  document.getElementById("w-slider").value = Math.round(state.weight * 100);
+  document.getElementById("frontier-only").checked = state.frontierOnly;
+  document.getElementById("show-estimated").checked = state.showEstimated;
+  document.getElementById("search-box").value = state.search || "";
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === state.view));
+  document.querySelectorAll("[data-cost]").forEach(b => b.classList.toggle("active", b.dataset.cost === state.costAxis));
+  document.querySelectorAll("[data-sort]").forEach(b => b.classList.toggle("active", b.dataset.sort === state.sort));
+}
+
+/* ---------- init ---------- */
+(async () => {
+  await Promise.all([loadGpus(), loadMetadata(), loadModels(), loadCapabilities()]);
+  loadState();
+  renderUseCaseTabs();
+  restoreControls();
+  render();
+})();
 </script>
 </body>
 </html>
