@@ -47,7 +47,7 @@ jobs:
       - name: Prepare deployment directory
         run: |
           mkdir -p dist/data
-          cp index.html dist/
+          cp *.html dist/
           cp -r data/* dist/data/
 
       - name: Deploy to GitHub Pages
