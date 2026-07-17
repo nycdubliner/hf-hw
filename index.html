@@ -75,6 +75,7 @@
   <div class="flex flex-wrap items-center gap-3">
     <span class="text-sm text-gray-400 whitespace-nowrap">Best for:</span>
     <div id="usecase-tabs" class="flex flex-wrap gap-1"></div>
+    <a href="scoring.html" target="_blank" class="text-xs text-blue-400 hover:underline whitespace-nowrap">how scoring works?</a>
   </div>
 
   <!-- Frontier controls -->
@@ -191,6 +192,25 @@ function familyOf(name) {
   for (const f of FAMILY_KEYS) if (n.includes(f)) return f;
   return null;
 }
+// Parse parameter counts out of a model name, e.g. "gemma-4-12B" -> 12,
+// "Qwen3-30B-A3B" -> total 30 / active 3, "gemma-4-E4B" -> 4 (Gemma-3n effective).
+function parseParamsFromName(name) {
+  const n = name || "";
+  const all = [...n.matchAll(/(?<![A-Za-z0-9.])(\d+(?:\.\d+)?)\s*[bB](?![A-Za-z])/g)].map(x => parseFloat(x[1]));
+  const eff = n.match(/[Ee](\d+(?:\.\d+)?)\s*[bB]\b/);       // effective params, e.g. E4B
+  const act = n.match(/[Aa](\d+(?:\.\d+)?)\s*[bB]\b/);       // MoE active, e.g. A3B
+  const total = all.length ? Math.max(...all) : (eff ? parseFloat(eff[1]) : null);
+  const active = act ? parseFloat(act[1]) : (eff ? parseFloat(eff[1]) : null);
+  return { total, active };
+}
+// Resolve total + active params from the record, capability table, or the name.
+function modelParams(m, cap) {
+  const parsed = parseParamsFromName(m.base_model || m.id || "");
+  const total = m.params_b || (cap && cap.params_b) || parsed.total || null;
+  const active = m.params_active_b || (cap && cap.params_active_b) || parsed.active || null;
+  return { total, active };
+}
+
 // axis-specific sensitivity to parameter count
 const SIZE_W = { coding: 1.0, reasoning: 1.0, general: 0.9, agentic: 0.9, longctx: 0.7, creative: 0.6, vision: 0.8 };
 
@@ -199,7 +219,7 @@ const SIZE_W = { coding: 1.0, reasoning: 1.0, general: 0.9, agentic: 0.9, longct
 // and a small popularity nudge. Capped below the measured ceiling so measured
 // top models always outrank estimates.
 function estimateCapability(m, cap, axis) {
-  const p = m.params_active_b || m.params_b || (cap && (cap.params_active_b || cap.params_b)) || null;
+  const p = modelParams(m, cap).total;   // capability tracks TOTAL params (a 30B-A3B MoE >> a 3B dense)
   const w = SIZE_W[axis] || 0.9;
   let base = p ? 30 + w * 22 * Math.log10(Math.max(1, p)) : 45;
   const ageDays = m.createdAt ? (Date.now() - new Date(m.createdAt)) / 86400000 : 400;
@@ -406,8 +426,7 @@ function buildCandidates() {
     const measured = cap && cap.scores && cap.scores[axis] != null ? cap.scores[axis] : null;
     const estimated = measured == null;
     const baseScore = estimated ? estimateCapability(m, cap, axis) : measured;
-    const params_b = (cap && cap.params_b) || m.params_b || null;
-    const active_b = m.params_active_b || (cap && cap.params_active_b) || null;
+    const { total: params_b, active: active_b } = modelParams(m, cap);
     const moe = (params_b && active_b) ? Math.max(0.3, active_b / params_b) : 1;
 
     for (const qt of m.quants) {
@@ -477,7 +496,7 @@ function render() {
         <div class="text-xs uppercase tracking-wide text-yellow-500 mb-1">Recommended for ${axisLabel} - ${Math.round(state.weight*100)}% capability weight</div>
         <a href="https://huggingface.co/${best.m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300">${best.m.id}</a>
         <span class="quant-chip ${COLOR_MAP[best.qt.color]||COLOR_MAP.gray} ml-2">${best.qt.quant} ${best.qt.size_gb}GB</span>
-        <span class="text-sm text-gray-400 ml-2">cap ${best.eff.toFixed(0)}/100${best.estimated?' <span class="text-gray-500">(est.)</span>':''} - ~${fmtTok(best.tok_s)} tok/s - ${best.footprint.toFixed(1)} GB total</span>
+        <span class="text-sm text-gray-400 ml-2"><a href="scoring.html${best.estimated?'#estimated':''}" target="_blank" class="hover:text-blue-300 underline decoration-dotted decoration-gray-600" title="How capability scoring works">cap ${best.eff.toFixed(0)}/100${best.estimated?' (est.)':''}</a> - ~${fmtTok(best.tok_s)} tok/s - ${best.footprint.toFixed(1)} GB total</span>
       </div>`;
   }
 
@@ -527,7 +546,7 @@ function renderCard(container, g, best) {
   const capRow = (g.bestEff != null) ? `
     <div class="mt-1">
       <div class="flex justify-between text-xs text-gray-400 mb-1">
-        <span>capability ${g.bestEff.toFixed(0)}/100 ${g.estimated ? '<span class="text-amber-500/80">(est.)</span>' : ''}</span>
+        <a href="scoring.html${g.estimated ? '#estimated' : ''}" target="_blank" class="hover:text-blue-300 underline decoration-dotted decoration-gray-600" title="How capability scoring works">capability ${g.bestEff.toFixed(0)}/100 ${g.estimated ? '<span class="text-amber-500/80">(est.)</span>' : ''}</a>
         <span>~${fmtTok(g.bestTok)} tok/s best</span>
       </div>
       <div class="cap-bar" style="${g.estimated ? 'opacity:.55' : ''}"><div style="width:${Math.max(2, g.bestEff)}%"></div></div>
@@ -535,7 +554,7 @@ function renderCard(container, g, best) {
   const modBadge = cap && cap.modalities && cap.modalities.includes("vision")
     ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-300 border border-purple-800">vision</span>` : "";
   const estBadge = g.estimated
-    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-300 border border-amber-800" title="No benchmark match; capability estimated from size, recency, family and tags">est.</span>` : "";
+    ? `<a href="scoring.html#estimated" target="_blank" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-300 border border-amber-800 hover:bg-amber-900/70" title="No benchmark match; capability estimated from size, recency, family and tags. Click to learn how.">est.</a>` : "";
   card.innerHTML = `
     <div>
       <a href="https://huggingface.co/${m.id}" target="_blank" class="text-white font-semibold hover:text-blue-300 text-sm block">${m.id}</a>
