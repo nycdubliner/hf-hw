@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How capability scoring works - HF Hardware Browser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0f1117; color: #e2e8f0; }
+    .card { background: #1a1f2e; border: 1px solid #2d3748; }
+    h2 { scroll-margin-top: 1rem; }
+    a.ref { color: #60a5fa; }
+    a.ref:hover { text-decoration: underline; }
+    code { background: #21262d; padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #2d3748; padding: 6px 10px; text-align: left; font-size: 0.85rem; }
+    th { color: #cbd5e1; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div class="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+  <h1 class="text-lg font-bold text-white">How capability scoring works</h1>
+  <a href="index.html" class="text-sm text-blue-400 hover:underline">&larr; back to browser</a>
+</div>
+
+<div class="max-w-3xl mx-auto px-6 py-8 space-y-8 leading-relaxed">
+
+  <section class="card rounded-xl p-5">
+    <p class="text-gray-300">
+      Each model shows a <strong>capability score from 0&ndash;100</strong> for the use case you
+      picked. These are <strong>indicative rankings, not raw benchmarks</strong>: they are only
+      comparable <em>within one axis</em> (a 70 for coding and a 70 for creative do not mean the
+      same thing), and they are meant to answer &ldquo;which of these will probably serve me best?&rdquo;,
+      not &ldquo;what did this model score on test X?&rdquo;
+    </p>
+  </section>
+
+  <section>
+    <h2 id="axes" class="text-xl font-semibold text-white mb-2">The use-case axes</h2>
+    <p class="text-gray-300 mb-3">Each model is scored separately per use case, from public leaderboards where available:</p>
+    <table>
+      <tr><th>Axis</th><th>Roughly sourced from</th></tr>
+      <tr><td>Coding</td><td>Aider polyglot / BigCodeBench / LiveCodeBench</td></tr>
+      <tr><td>General / chat</td><td>LMArena (open-weights Elo)</td></tr>
+      <tr><td>Reasoning / math</td><td>GPQA-Diamond, MMLU-Pro, MATH</td></tr>
+      <tr><td>Multimodal (vision)</td><td>MMMU / OpenVLM</td></tr>
+      <tr><td>Agentic / tools</td><td>BFCL (function-calling)</td></tr>
+      <tr><td>Creative</td><td>EQ-Bench creative writing</td></tr>
+      <tr><td>Long context</td><td>RULER / LongBench</td></tr>
+    </table>
+    <p class="text-gray-400 text-sm mt-2">Raw metrics are normalized to 0&ndash;100 per axis (rescaled so the weakest rated model sits near 30, not 0). Only vision-capable models appear under the vision axis.</p>
+  </section>
+
+  <section>
+    <h2 id="measured" class="text-xl font-semibold text-white mb-2">Measured vs. estimated</h2>
+    <p class="text-gray-300">
+      Scores come from a small <strong>curated table</strong> keyed to each model&rsquo;s base model.
+      Because a live trending feed is full of brand-new models and fine-tunes the table hasn&rsquo;t
+      reached, anything without a match gets an <strong>estimate</strong> instead of being hidden.
+    </p>
+    <ul class="list-disc pl-6 mt-3 space-y-1 text-gray-300">
+      <li><strong>Measured</strong> &ndash; matched to a curated entry sourced from the leaderboards above.</li>
+      <li id="estimated"><strong>Estimated</strong> (tagged <span class="text-amber-300 border border-amber-800 bg-amber-900/40 rounded px-1 text-xs">est.</span>) &ndash;
+        no benchmark match, so capability is inferred from
+        <strong>total parameter count</strong>, <strong>recency</strong>, a <strong>same-family prior</strong>
+        (a new <code>Qwen3.x</code> inherits from the best known <code>Qwen</code> entry), <strong>domain
+        tags</strong> in the name (e.g. &ldquo;coder&rdquo;), and a small <strong>popularity</strong> nudge.
+        Estimates are capped just below the measured ceiling so a genuinely-benchmarked top model always
+        outranks a guess. In the chart they are drawn as <strong>hollow dots</strong>; the
+        &ldquo;Show estimated&rdquo; toggle hides them.</li>
+    </ul>
+    <p class="text-gray-400 text-sm mt-3">
+      Estimates track <em>total</em> params, so a 30B mixture-of-experts with 3B active is scored like a
+      30B model (its capability), while its speed is estimated from the 3B it actually runs (see below).
+      A 4B and a 30B in the same family get clearly different scores.
+    </p>
+  </section>
+
+  <section>
+    <h2 id="retention" class="text-xl font-semibold text-white mb-2">Quantization retention</h2>
+    <p class="text-gray-300">
+      The score above is for the model at full quality. Each <em>quant</em> then keeps a fraction of it:
+      <code>effective capability = base score &times; retention(quant)</code>. Lower-bit quants lose a
+      little quality:
+    </p>
+    <table class="mt-3">
+      <tr><th>Quant</th><th>Retention</th></tr>
+      <tr><td>F16 / Q8</td><td>~1.00</td></tr>
+      <tr><td>Q6_K</td><td>~0.995</td></tr>
+      <tr><td>Q5_K</td><td>~0.99</td></tr>
+      <tr><td>Q4_K / IQ4_XS</td><td>~0.97</td></tr>
+      <tr><td>Q3 / IQ3</td><td>~0.90</td></tr>
+      <tr><td>Q2 / IQ2</td><td>~0.78</td></tr>
+      <tr><td>IQ1 / TQ</td><td>~0.60</td></tr>
+    </table>
+    <p class="text-gray-400 text-sm mt-2">This is why a big model at Q4 can out-rank a small model at Q8 &ndash; the retention curve keeps them comparable. The curve is a heuristic (grounded in perplexity deltas) and tunable.</p>
+  </section>
+
+  <section>
+    <h2 id="speed" class="text-xl font-semibold text-white mb-2">Speed &amp; footprint</h2>
+    <p class="text-gray-300">
+      <strong>Decode speed</strong> (tok/s) is estimated as <code>~0.8 &times; memory bandwidth / bytes read per token</code>,
+      where bytes &asymp; quant size (&times; active/total for MoE) plus the KV cache. It is a
+      <strong>bandwidth-bound estimate</strong> &ndash; it ignores prefill and compute, so treat it as an
+      order-of-magnitude guide. <strong>Footprint</strong> is quant weights + estimated KV cache for your
+      context and KV-cache quant.
+    </p>
+  </section>
+
+  <section>
+    <h2 id="frontier" class="text-xl font-semibold text-white mb-2">The Pareto frontier</h2>
+    <p class="text-gray-300">
+      For each (model, quant) that fits your VRAM, the tool plots capability against cost (speed and size).
+      A point is <strong>on the frontier</strong> (green, &starf;) if nothing else beats it on both at once
+      &ndash; the set worth choosing from. The <strong>recommended</strong> pick (gold) is the frontier point
+      that best matches your capability-vs-speed slider.
+    </p>
+  </section>
+
+  <section>
+    <h2 id="caveats" class="text-xl font-semibold text-white mb-2">Caveats</h2>
+    <ul class="list-disc pl-6 space-y-1 text-gray-300">
+      <li>Scores are <strong>indicative, not benchmarks</strong>; normalization across different leaderboards is inherently fuzzy.</li>
+      <li>Estimated scores for long-tail fine-tunes are rough &ndash; use the &ldquo;est.&rdquo; tag and the toggle accordingly.</li>
+      <li>tok/s is a decode-only estimate; real throughput depends on backend, prompt length, and attention.</li>
+      <li>A live capability API was considered but rejected on licensing/coverage grounds &ndash; see the
+        <a class="ref" href="https://github.com/nycdubliner/hf-hw#readme" target="_blank">README</a> for the full sourcing rationale.</li>
+    </ul>
+  </section>
+
+  <div class="pt-4"><a href="index.html" class="text-sm text-blue-400 hover:underline">&larr; back to browser</a></div>
+</div>
+
+</body>
+</html>
