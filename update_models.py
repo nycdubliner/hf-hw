@@ -128,6 +128,43 @@ def extract_base_model_id(tags: list[str]) -> str | None:
             return t[len("base_model:"):]
     return None
 
+# param counts encoded in names, e.g. "8B", "27b", "Qwen3-30B-A3B" (30B total, 3B active)
+_PARAM_RE = re.compile(r"(?<![A-Za-z0-9.])(\d+(?:\.\d+)?)\s*[bB](?![A-Za-z])")
+_ACTIVE_RE = re.compile(r"[Aa](\d+(?:\.\d+)?)\s*[bB]\b")
+
+def parse_params(*names: str | None) -> tuple[float | None, float | None]:
+    total: float | None = None
+    active: float | None = None
+    for name in names:
+        if not name:
+            continue
+        am = _ACTIVE_RE.search(name)
+        if am and active is None:
+            active = float(am.group(1))
+        cands = [float(m.group(1)) for m in _PARAM_RE.finditer(name)]
+        if cands:
+            total = max(cands)
+            break
+    return total, active
+
+_VISION_HINTS = {"image-text-to-text", "visual-question-answering", "image-to-text",
+                 "multimodal", "vision", "any-to-any"}
+
+def detect_modalities(pipeline_tag: str, tags: list[str]) -> list[str]:
+    mods = ["text"]
+    hay = {t.lower() for t in tags}
+    if pipeline_tag:
+        hay.add(pipeline_tag.lower())
+    if (hay & _VISION_HINTS) or any(t.endswith("-vl") or t == "vlm" for t in hay):
+        mods.append("vision")
+    if "audio" in hay or "automatic-speech-recognition" in hay or "audio-text-to-text" in hay:
+        mods.append("audio")
+    return mods
+
+def has_vision_projector(tree_entries: list[dict]) -> bool:
+    return any(e.get("path", "").split("/")[-1].lower().startswith("mmproj")
+               for e in tree_entries)
+
 # --- API Logic ---
 
 async def fetch_tree(client: httpx.AsyncClient, model_id: str) -> list[dict]:
@@ -280,17 +317,30 @@ async def main():
             if not quants:
                 continue
 
+            pipeline_tag = m.get("pipeline_tag", "")
+            tags = m.get("tags", [])
+            params_b, params_active_b = parse_params(base_id, m["id"])
+            modalities = detect_modalities(pipeline_tag, tags)
+            projector = has_vision_projector(tree)
+            if projector and "vision" not in modalities:
+                modalities.append("vision")
+
             results.append({
                 "id": m["id"],
+                "base_model": base_id,
                 "author": m.get("author", ""),
                 "createdAt": m.get("createdAt", ""),
                 "lastModified": m.get("lastModified", ""),
                 "downloads": m.get("downloads", 0),
                 "likes": m.get("likes", 0),
-                "pipeline_tag": m.get("pipeline_tag", ""),
-                "tags": [t for t in m.get("tags", []) if not any(t.startswith(p) for p in ("base_model:", "dataset:", "arxiv:", "region:", "license:"))][:8],
+                "pipeline_tag": pipeline_tag,
+                "tags": [t for t in tags if not any(t.startswith(p) for p in ("base_model:", "dataset:", "arxiv:", "region:", "license:"))][:8],
                 "max_ctx": cfg.get("max_ctx"),
                 "vocab_size": cfg.get("vocab_size"),
+                "params_b": params_b,
+                "params_active_b": params_active_b,
+                "modalities": modalities,
+                "has_vision_projector": projector,
                 "is_mtp": is_mtp_repo(m["id"]),
                 "arch": {
                     "n_layers": cfg.get("n_layers"),
