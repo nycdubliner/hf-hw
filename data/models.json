@@ -6,7 +6,7 @@
     "createdAt": "2026-07-17T00:27:17.000Z",
     "lastModified": "2026-07-31T07:53:38.000Z",
     "downloads": 1173001,
-    "likes": 1229,
+    "likes": 1232,
     "pipeline_tag": "image-text-to-text",
     "tags": [
       "gguf",
@@ -224,7 +224,7 @@
     "createdAt": "2026-07-19T04:33:55.000Z",
     "lastModified": "2026-07-31T00:35:49.000Z",
     "downloads": 267572,
-    "likes": 185,
+    "likes": 186,
     "pipeline_tag": "image-text-to-text",
     "tags": [
       "gguf",
@@ -762,7 +762,7 @@
     "createdAt": "2026-04-26T07:54:05.000Z",
     "lastModified": "2026-08-01T00:57:00.000Z",
     "downloads": 663634,
-    "likes": 391,
+    "likes": 393,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -918,7 +918,7 @@
     "createdAt": "2026-06-19T00:06:07.000Z",
     "lastModified": "2026-06-19T09:31:48.000Z",
     "downloads": 381603,
-    "likes": 1355,
+    "likes": 1356,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -1191,7 +1191,7 @@
     "createdAt": "2026-07-23T17:06:03.000Z",
     "lastModified": "2026-07-24T02:46:59.000Z",
     "downloads": 79415,
-    "likes": 62,
+    "likes": 64,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -1437,6 +1437,83 @@
     ]
   },
   {
+    "id": "empero-ai/Qwythos-27B-v1-GGUF",
+    "base_model": "empero-ai/Qwythos-27B-v1",
+    "author": "empero-ai",
+    "createdAt": "2026-07-14T08:06:08.000Z",
+    "lastModified": "2026-07-29T23:01:14.000Z",
+    "downloads": 18205,
+    "likes": 38,
+    "pipeline_tag": "image-text-to-text",
+    "tags": [
+      "gguf",
+      "llama.cpp",
+      "quantized",
+      "qwen3.5",
+      "reasoning",
+      "uncensored",
+      "long-context",
+      "1M-context"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "params_b": 27.0,
+    "params_active_b": null,
+    "modalities": [
+      "text",
+      "vision"
+    ],
+    "has_vision_projector": true,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 108466013920,
+        "filename": "Qwythos-27B-BF16.gguf",
+        "quant": "BF16",
+        "label": "16-bit",
+        "color": "blue",
+        "size_gb": 108.47
+      },
+      {
+        "size_bytes": 34917869280,
+        "filename": "Qwythos-27B-MTP-Q4_K_M.gguf",
+        "quant": "Q4_K_M",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 34.92
+      },
+      {
+        "size_bytes": 39936616160,
+        "filename": "Qwythos-27B-MTP-Q5_K_M.gguf",
+        "quant": "Q5_K_M",
+        "label": "5-bit",
+        "color": "lime",
+        "size_gb": 39.94
+      },
+      {
+        "size_bytes": 45269034720,
+        "filename": "Qwythos-27B-MTP-Q6_K.gguf",
+        "quant": "Q6_K",
+        "label": "6-bit",
+        "color": "green",
+        "size_gb": 45.27
+      },
+      {
+        "size_bytes": 57642845920,
+        "filename": "Qwythos-27B-MTP-Q8_0.gguf",
+        "quant": "Q8_0",
+        "label": "8-bit",
+        "color": "teal",
+        "size_gb": 57.64
+      }
+    ]
+  },
+  {
     "id": "unsloth/Qwen3.6-35B-A3B-GGUF",
     "base_model": "Qwen/Qwen3.6-35B-A3B",
     "author": "unsloth",
@@ -1654,83 +1731,6 @@
         "label": "8-bit",
         "color": "teal",
         "size_gb": 38.45
-      }
-    ]
-  },
-  {
-    "id": "empero-ai/Qwythos-27B-v1-GGUF",
-    "base_model": "empero-ai/Qwythos-27B-v1",
-    "author": "empero-ai",
-    "createdAt": "2026-07-14T08:06:08.000Z",
-    "lastModified": "2026-07-29T23:01:14.000Z",
-    "downloads": 18205,
-    "likes": 38,
-    "pipeline_tag": "image-text-to-text",
-    "tags": [
-      "gguf",
-      "llama.cpp",
-      "quantized",
-      "qwen3.5",
-      "reasoning",
-      "uncensored",
-      "long-context",
-      "1M-context"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "params_b": 27.0,
-    "params_active_b": null,
-    "modalities": [
-      "text",
-      "vision"
-    ],
-    "has_vision_projector": true,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 108466013920,
-        "filename": "Qwythos-27B-BF16.gguf",
-        "quant": "BF16",
-        "label": "16-bit",
-        "color": "blue",
-        "size_gb": 108.47
-      },
-      {
-        "size_bytes": 34917869280,
-        "filename": "Qwythos-27B-MTP-Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 34.92
-      },
-      {
-        "size_bytes": 39936616160,
-        "filename": "Qwythos-27B-MTP-Q5_K_M.gguf",
-        "quant": "Q5_K_M",
-        "label": "5-bit",
-        "color": "lime",
-        "size_gb": 39.94
-      },
-      {
-        "size_bytes": 45269034720,
-        "filename": "Qwythos-27B-MTP-Q6_K.gguf",
-        "quant": "Q6_K",
-        "label": "6-bit",
-        "color": "green",
-        "size_gb": 45.27
-      },
-      {
-        "size_bytes": 57642845920,
-        "filename": "Qwythos-27B-MTP-Q8_0.gguf",
-        "quant": "Q8_0",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 57.64
       }
     ]
   },
@@ -3290,7 +3290,7 @@
     "createdAt": "2026-06-10T07:24:02.000Z",
     "lastModified": "2026-06-19T03:52:11.000Z",
     "downloads": 262940,
-    "likes": 2788,
+    "likes": 2789,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -3496,6 +3496,254 @@
         "label": "8-bit",
         "color": "teal",
         "size_gb": 4.43
+      }
+    ]
+  },
+  {
+    "id": "FINAL-Bench/POCKET-35B-GGUF",
+    "base_model": "FINAL-Bench/Darwin-36B-Opus",
+    "author": "FINAL-Bench",
+    "createdAt": "2026-07-22T22:24:56.000Z",
+    "lastModified": "2026-07-29T16:04:41.000Z",
+    "downloads": 21509,
+    "likes": 61,
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "llama.cpp",
+      "gguf",
+      "conversational",
+      "on-device",
+      "mobile",
+      "iphone",
+      "android",
+      "cpu"
+    ],
+    "max_ctx": 262144,
+    "vocab_size": 248320,
+    "params_b": 36.0,
+    "params_active_b": null,
+    "modalities": [
+      "text"
+    ],
+    "has_vision_projector": false,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": 40,
+      "n_kv_heads": 2,
+      "head_dim": 128
+    },
+    "quants": [
+      {
+        "size_bytes": 8239208384,
+        "filename": "POCKET-35B-IQ1_M.gguf",
+        "quant": "IQ1_M",
+        "label": "1-bit",
+        "color": "red",
+        "size_gb": 8.24
+      },
+      {
+        "size_bytes": 12939593664,
+        "filename": "POCKET-35B-Q2_K.gguf",
+        "quant": "Q2_K",
+        "label": "2-bit",
+        "color": "orange",
+        "size_gb": 12.94
+      },
+      {
+        "size_bytes": 16764763840,
+        "filename": "POCKET-35B-Q3_K_M.gguf",
+        "quant": "Q3_K_M",
+        "label": "3-bit",
+        "color": "amber",
+        "size_gb": 16.76
+      },
+      {
+        "size_bytes": 21166757568,
+        "filename": "POCKET-35B-Q4_K_M.gguf",
+        "quant": "Q4_K_M",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 21.17
+      }
+    ]
+  },
+  {
+    "id": "jcbtc/Laguna-S-2.1-Chadrock-ROCmFP4-StrixKVSpine-V4-GGUF",
+    "base_model": "poolside/Laguna-S-2.1",
+    "author": "jcbtc",
+    "createdAt": "2026-07-23T22:10:40.000Z",
+    "lastModified": "2026-08-01T14:34:13.000Z",
+    "downloads": 2575,
+    "likes": 27,
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "llama.cpp",
+      "gguf",
+      "laguna-s-2.1",
+      "poolside",
+      "agentic-coding",
+      "tool-use",
+      "rocm",
+      "rocmfp4"
+    ],
+    "max_ctx": 1048576,
+    "vocab_size": 100352,
+    "params_b": null,
+    "params_active_b": null,
+    "modalities": [
+      "text"
+    ],
+    "has_vision_projector": false,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": 48,
+      "n_kv_heads": 8,
+      "head_dim": 64
+    },
+    "quants": [
+      {
+        "size_bytes": 65438991968,
+        "filename": "laguna-s-2.1-ROCmFP4-StrixKVSpine-v4.gguf",
+        "quant": "laguna-s-2.1-ROCmFP4-StrixKVSpine-v4",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 65.44
+      }
+    ]
+  },
+  {
+    "id": "mudler/KAT-Coder-V2.5-Dev-APEX-GGUF",
+    "base_model": "Kwaipilot/KAT-Coder-V2.5-Dev",
+    "author": "mudler",
+    "createdAt": "2026-07-24T21:31:00.000Z",
+    "lastModified": "2026-07-25T00:08:22.000Z",
+    "downloads": 66037,
+    "likes": 26,
+    "pipeline_tag": "",
+    "tags": [
+      "gguf",
+      "quantized",
+      "apex",
+      "moe",
+      "mixture-of-experts",
+      "qwen3",
+      "code",
+      "coder"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "params_b": null,
+    "params_active_b": null,
+    "modalities": [
+      "text"
+    ],
+    "has_vision_projector": false,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 25268441216,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-Balanced.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-Balanced",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 25.27
+      },
+      {
+        "size_bytes": 16538851456,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-Compact.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-Compact",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 16.54
+      },
+      {
+        "size_bytes": 25268441472,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Balanced.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Balanced",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 25.27
+      },
+      {
+        "size_bytes": 16538851712,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Compact.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Compact",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 16.54
+      },
+      {
+        "size_bytes": 13467211136,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Mini",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 13.47
+      },
+      {
+        "size_bytes": 22819402112,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Quality.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Quality",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 22.82
+      },
+      {
+        "size_bytes": 22819401856,
+        "filename": "KAT-Coder-V2.5-Dev-APEX-Quality.gguf",
+        "quant": "KAT-Coder-V2.5-Dev-APEX-Quality",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 22.82
+      }
+    ]
+  },
+  {
+    "id": "GrEarl/Kimi-K3-GGUF-IQ1_S",
+    "base_model": "moonshotai/Kimi-K3",
+    "author": "GrEarl",
+    "createdAt": "2026-07-27T19:28:46.000Z",
+    "lastModified": "2026-07-29T06:05:11.000Z",
+    "downloads": 2800,
+    "likes": 20,
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "llama.cpp",
+      "gguf",
+      "kimi",
+      "kimi-k3",
+      "moe",
+      "mxfp4",
+      "iq1_s",
+      "text-generation"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "params_b": null,
+    "params_active_b": null,
+    "modalities": [
+      "text"
+    ],
+    "has_vision_projector": false,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 566967159264,
+        "filename": "Kimi-K3-IQ1_S-00001-of-00094.gguf",
+        "quant": "IQ1_S",
+        "label": "1-bit",
+        "color": "red",
+        "size_gb": 566.97
       }
     ]
   },
@@ -3744,162 +3992,6 @@
     ]
   },
   {
-    "id": "FINAL-Bench/POCKET-35B-GGUF",
-    "base_model": "FINAL-Bench/Darwin-36B-Opus",
-    "author": "FINAL-Bench",
-    "createdAt": "2026-07-22T22:24:56.000Z",
-    "lastModified": "2026-07-29T16:04:41.000Z",
-    "downloads": 21509,
-    "likes": 61,
-    "pipeline_tag": "text-generation",
-    "tags": [
-      "llama.cpp",
-      "gguf",
-      "conversational",
-      "on-device",
-      "mobile",
-      "iphone",
-      "android",
-      "cpu"
-    ],
-    "max_ctx": 262144,
-    "vocab_size": 248320,
-    "params_b": 36.0,
-    "params_active_b": null,
-    "modalities": [
-      "text"
-    ],
-    "has_vision_projector": false,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": 40,
-      "n_kv_heads": 2,
-      "head_dim": 128
-    },
-    "quants": [
-      {
-        "size_bytes": 8239208384,
-        "filename": "POCKET-35B-IQ1_M.gguf",
-        "quant": "IQ1_M",
-        "label": "1-bit",
-        "color": "red",
-        "size_gb": 8.24
-      },
-      {
-        "size_bytes": 12939593664,
-        "filename": "POCKET-35B-Q2_K.gguf",
-        "quant": "Q2_K",
-        "label": "2-bit",
-        "color": "orange",
-        "size_gb": 12.94
-      },
-      {
-        "size_bytes": 16764763840,
-        "filename": "POCKET-35B-Q3_K_M.gguf",
-        "quant": "Q3_K_M",
-        "label": "3-bit",
-        "color": "amber",
-        "size_gb": 16.76
-      },
-      {
-        "size_bytes": 21166757568,
-        "filename": "POCKET-35B-Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 21.17
-      }
-    ]
-  },
-  {
-    "id": "jcbtc/Laguna-S-2.1-Chadrock-ROCmFP4-StrixKVSpine-V4-GGUF",
-    "base_model": "poolside/Laguna-S-2.1",
-    "author": "jcbtc",
-    "createdAt": "2026-07-23T22:10:40.000Z",
-    "lastModified": "2026-08-01T14:34:13.000Z",
-    "downloads": 2575,
-    "likes": 27,
-    "pipeline_tag": "text-generation",
-    "tags": [
-      "llama.cpp",
-      "gguf",
-      "laguna-s-2.1",
-      "poolside",
-      "agentic-coding",
-      "tool-use",
-      "rocm",
-      "rocmfp4"
-    ],
-    "max_ctx": 1048576,
-    "vocab_size": 100352,
-    "params_b": null,
-    "params_active_b": null,
-    "modalities": [
-      "text"
-    ],
-    "has_vision_projector": false,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": 48,
-      "n_kv_heads": 8,
-      "head_dim": 64
-    },
-    "quants": [
-      {
-        "size_bytes": 65438991968,
-        "filename": "laguna-s-2.1-ROCmFP4-StrixKVSpine-v4.gguf",
-        "quant": "laguna-s-2.1-ROCmFP4-StrixKVSpine-v4",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 65.44
-      }
-    ]
-  },
-  {
-    "id": "GrEarl/Kimi-K3-GGUF-IQ1_S",
-    "base_model": "moonshotai/Kimi-K3",
-    "author": "GrEarl",
-    "createdAt": "2026-07-27T19:28:46.000Z",
-    "lastModified": "2026-07-29T06:05:11.000Z",
-    "downloads": 2800,
-    "likes": 20,
-    "pipeline_tag": "text-generation",
-    "tags": [
-      "llama.cpp",
-      "gguf",
-      "kimi",
-      "kimi-k3",
-      "moe",
-      "mxfp4",
-      "iq1_s",
-      "text-generation"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "params_b": null,
-    "params_active_b": null,
-    "modalities": [
-      "text"
-    ],
-    "has_vision_projector": false,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 566967159264,
-        "filename": "Kimi-K3-IQ1_S-00001-of-00094.gguf",
-        "quant": "IQ1_S",
-        "label": "1-bit",
-        "color": "red",
-        "size_gb": 566.97
-      }
-    ]
-  },
-  {
     "id": "unsloth/gemma-4-12b-it-GGUF",
     "base_model": "google/gemma-4-12B-it",
     "author": "unsloth",
@@ -4113,98 +4205,6 @@
     ]
   },
   {
-    "id": "mudler/KAT-Coder-V2.5-Dev-APEX-GGUF",
-    "base_model": "Kwaipilot/KAT-Coder-V2.5-Dev",
-    "author": "mudler",
-    "createdAt": "2026-07-24T21:31:00.000Z",
-    "lastModified": "2026-07-25T00:08:22.000Z",
-    "downloads": 66037,
-    "likes": 25,
-    "pipeline_tag": "",
-    "tags": [
-      "gguf",
-      "quantized",
-      "apex",
-      "moe",
-      "mixture-of-experts",
-      "qwen3",
-      "code",
-      "coder"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "params_b": null,
-    "params_active_b": null,
-    "modalities": [
-      "text"
-    ],
-    "has_vision_projector": false,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 25268441216,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-Balanced.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-Balanced",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 25.27
-      },
-      {
-        "size_bytes": 16538851456,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-Compact.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-Compact",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 16.54
-      },
-      {
-        "size_bytes": 25268441472,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Balanced.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Balanced",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 25.27
-      },
-      {
-        "size_bytes": 16538851712,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Compact.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Compact",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 16.54
-      },
-      {
-        "size_bytes": 13467211136,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Mini",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 13.47
-      },
-      {
-        "size_bytes": 22819402112,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-I-Quality.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-I-Quality",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 22.82
-      },
-      {
-        "size_bytes": 22819401856,
-        "filename": "KAT-Coder-V2.5-Dev-APEX-Quality.gguf",
-        "quant": "KAT-Coder-V2.5-Dev-APEX-Quality",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 22.82
-      }
-    ]
-  },
-  {
     "id": "SC117/Qwen3.6-35B-A3B-uncensored-heretic-Native-MTP-Preserved-APEX-GGUF",
     "base_model": "llmfan46/Qwen3.6-35B-A3B-uncensored-heretic-Native-MTP-Preserved",
     "author": "SC117",
@@ -4407,7 +4407,7 @@
     "createdAt": "2026-07-26T04:04:50.000Z",
     "lastModified": "2026-07-26T22:46:33.000Z",
     "downloads": 4905,
-    "likes": 14,
+    "likes": 15,
     "pipeline_tag": "text-generation",
     "tags": [
       "gguf",
@@ -4765,217 +4765,6 @@
         "label": "?-bit",
         "color": "gray",
         "size_gb": 0.35
-      }
-    ]
-  },
-  {
-    "id": "unsloth/Qwen3.5-9B-GGUF",
-    "base_model": "Qwen/Qwen3.5-9B",
-    "author": "unsloth",
-    "createdAt": "2026-02-28T14:04:29.000Z",
-    "lastModified": "2026-03-02T14:08:36.000Z",
-    "downloads": 969593,
-    "likes": 800,
-    "pipeline_tag": "image-text-to-text",
-    "tags": [
-      "transformers",
-      "gguf",
-      "unsloth",
-      "image-text-to-text",
-      "endpoints_compatible",
-      "conversational"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "params_b": 9.0,
-    "params_active_b": null,
-    "modalities": [
-      "text",
-      "vision"
-    ],
-    "has_vision_projector": true,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 17920697312,
-        "filename": "Qwen3.5-9B-BF16.gguf",
-        "quant": "BF16",
-        "label": "16-bit",
-        "color": "blue",
-        "size_gb": 17.92
-      },
-      {
-        "size_bytes": 5371028704,
-        "filename": "Qwen3.5-9B-IQ4_NL.gguf",
-        "quant": "IQ4_NL",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.37
-      },
-      {
-        "size_bytes": 5168653536,
-        "filename": "Qwen3.5-9B-IQ4_XS.gguf",
-        "quant": "IQ4_XS",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.17
-      },
-      {
-        "size_bytes": 4673643744,
-        "filename": "Qwen3.5-9B-Q3_K_M.gguf",
-        "quant": "Q3_K_M",
-        "label": "3-bit",
-        "color": "amber",
-        "size_gb": 4.67
-      },
-      {
-        "size_bytes": 4316865760,
-        "filename": "Qwen3.5-9B-Q3_K_S.gguf",
-        "quant": "Q3_K_S",
-        "label": "3-bit",
-        "color": "amber",
-        "size_gb": 4.32
-      },
-      {
-        "size_bytes": 5379417312,
-        "filename": "Qwen3.5-9B-Q4_0.gguf",
-        "quant": "Q4_0",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.38
-      },
-      {
-        "size_bytes": 5837251808,
-        "filename": "Qwen3.5-9B-Q4_1.gguf",
-        "quant": "Q4_1",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.84
-      },
-      {
-        "size_bytes": 5680522464,
-        "filename": "Qwen3.5-9B-Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.68
-      },
-      {
-        "size_bytes": 5394097376,
-        "filename": "Qwen3.5-9B-Q4_K_S.gguf",
-        "quant": "Q4_K_S",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.39
-      },
-      {
-        "size_bytes": 6577841376,
-        "filename": "Qwen3.5-9B-Q5_K_M.gguf",
-        "quant": "Q5_K_M",
-        "label": "5-bit",
-        "color": "lime",
-        "size_gb": 6.58
-      },
-      {
-        "size_bytes": 6361146592,
-        "filename": "Qwen3.5-9B-Q5_K_S.gguf",
-        "quant": "Q5_K_S",
-        "label": "5-bit",
-        "color": "lime",
-        "size_gb": 6.36
-      },
-      {
-        "size_bytes": 7458301152,
-        "filename": "Qwen3.5-9B-Q6_K.gguf",
-        "quant": "Q6_K",
-        "label": "6-bit",
-        "color": "green",
-        "size_gb": 7.46
-      },
-      {
-        "size_bytes": 9527502048,
-        "filename": "Qwen3.5-9B-Q8_0.gguf",
-        "quant": "Q8_0",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 9.53
-      },
-      {
-        "size_bytes": 3649365216,
-        "filename": "Qwen3.5-9B-UD-IQ2_M.gguf",
-        "quant": "IQ2_M",
-        "label": "2-bit",
-        "color": "orange",
-        "size_gb": 3.65
-      },
-      {
-        "size_bytes": 3190613216,
-        "filename": "Qwen3.5-9B-UD-IQ2_XXS.gguf",
-        "quant": "IQ2_XXS",
-        "label": "2-bit",
-        "color": "orange",
-        "size_gb": 3.19
-      },
-      {
-        "size_bytes": 4016235744,
-        "filename": "Qwen3.5-9B-UD-IQ3_XXS.gguf",
-        "quant": "IQ3_XXS",
-        "label": "3-bit",
-        "color": "amber",
-        "size_gb": 4.02
-      },
-      {
-        "size_bytes": 4121781472,
-        "filename": "Qwen3.5-9B-UD-Q2_K_XL.gguf",
-        "quant": "Q2_K_XL",
-        "label": "2-bit",
-        "color": "orange",
-        "size_gb": 4.12
-      },
-      {
-        "size_bytes": 5053834464,
-        "filename": "Qwen3.5-9B-UD-Q3_K_XL.gguf",
-        "quant": "Q3_K_XL",
-        "label": "3-bit",
-        "color": "amber",
-        "size_gb": 5.05
-      },
-      {
-        "size_bytes": 5966095584,
-        "filename": "Qwen3.5-9B-UD-Q4_K_XL.gguf",
-        "quant": "Q4_K_XL",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.97
-      },
-      {
-        "size_bytes": 6743680224,
-        "filename": "Qwen3.5-9B-UD-Q5_K_XL.gguf",
-        "quant": "Q5_K_XL",
-        "label": "5-bit",
-        "color": "lime",
-        "size_gb": 6.74
-      },
-      {
-        "size_bytes": 8756929760,
-        "filename": "Qwen3.5-9B-UD-Q6_K_XL.gguf",
-        "quant": "Q6_K_XL",
-        "label": "6-bit",
-        "color": "green",
-        "size_gb": 8.76
-      },
-      {
-        "size_bytes": 12974040288,
-        "filename": "Qwen3.5-9B-UD-Q8_K_XL.gguf",
-        "quant": "Q8_K_XL",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 12.97
       }
     ]
   },
@@ -5587,74 +5376,6 @@
     ]
   },
   {
-    "id": "GnLOLot/MiniCPM5-1B-Claude-Opus-Fable5-Thinking-GGUF",
-    "base_model": "GnLOLot/MiniCPM5-1B-Claude-Opus-Fable5-Thinking",
-    "author": "GnLOLot",
-    "createdAt": "2026-07-03T09:24:41.000Z",
-    "lastModified": "2026-07-13T14:56:34.000Z",
-    "downloads": 328782,
-    "likes": 314,
-    "pipeline_tag": "text-generation",
-    "tags": [
-      "gguf",
-      "llama.cpp",
-      "quantized",
-      "minicpm5",
-      "thinking",
-      "fable5",
-      "coding",
-      "instruction-following"
-    ],
-    "max_ctx": 131072,
-    "vocab_size": 130560,
-    "params_b": 1.0,
-    "params_active_b": null,
-    "modalities": [
-      "text"
-    ],
-    "has_vision_projector": false,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": 24,
-      "n_kv_heads": 2,
-      "head_dim": 96
-    },
-    "quants": [
-      {
-        "size_bytes": 2166552512,
-        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-F16.gguf",
-        "quant": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-F16",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 2.17
-      },
-      {
-        "size_bytes": 688066496,
-        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 0.69
-      },
-      {
-        "size_bytes": 786862016,
-        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q5_K_M.gguf",
-        "quant": "Q5_K_M",
-        "label": "5-bit",
-        "color": "lime",
-        "size_gb": 0.79
-      },
-      {
-        "size_bytes": 1153529792,
-        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q8_0.gguf",
-        "quant": "Q8_0",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 1.15
-      }
-    ]
-  },
-  {
     "id": "nerkyor/Qwen3.5-122B-A10B-44GB-GPT5.6Sol-SFT-LynnStyle-GGUF",
     "base_model": null,
     "author": "nerkyor",
@@ -6028,6 +5749,285 @@
         "label": "6-bit",
         "color": "green",
         "size_gb": 6.6
+      }
+    ]
+  },
+  {
+    "id": "unsloth/Qwen3.5-9B-GGUF",
+    "base_model": "Qwen/Qwen3.5-9B",
+    "author": "unsloth",
+    "createdAt": "2026-02-28T14:04:29.000Z",
+    "lastModified": "2026-03-02T14:08:36.000Z",
+    "downloads": 969593,
+    "likes": 800,
+    "pipeline_tag": "image-text-to-text",
+    "tags": [
+      "transformers",
+      "gguf",
+      "unsloth",
+      "image-text-to-text",
+      "endpoints_compatible",
+      "conversational"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "params_b": 9.0,
+    "params_active_b": null,
+    "modalities": [
+      "text",
+      "vision"
+    ],
+    "has_vision_projector": true,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 17920697312,
+        "filename": "Qwen3.5-9B-BF16.gguf",
+        "quant": "BF16",
+        "label": "16-bit",
+        "color": "blue",
+        "size_gb": 17.92
+      },
+      {
+        "size_bytes": 5371028704,
+        "filename": "Qwen3.5-9B-IQ4_NL.gguf",
+        "quant": "IQ4_NL",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.37
+      },
+      {
+        "size_bytes": 5168653536,
+        "filename": "Qwen3.5-9B-IQ4_XS.gguf",
+        "quant": "IQ4_XS",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.17
+      },
+      {
+        "size_bytes": 4673643744,
+        "filename": "Qwen3.5-9B-Q3_K_M.gguf",
+        "quant": "Q3_K_M",
+        "label": "3-bit",
+        "color": "amber",
+        "size_gb": 4.67
+      },
+      {
+        "size_bytes": 4316865760,
+        "filename": "Qwen3.5-9B-Q3_K_S.gguf",
+        "quant": "Q3_K_S",
+        "label": "3-bit",
+        "color": "amber",
+        "size_gb": 4.32
+      },
+      {
+        "size_bytes": 5379417312,
+        "filename": "Qwen3.5-9B-Q4_0.gguf",
+        "quant": "Q4_0",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.38
+      },
+      {
+        "size_bytes": 5837251808,
+        "filename": "Qwen3.5-9B-Q4_1.gguf",
+        "quant": "Q4_1",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.84
+      },
+      {
+        "size_bytes": 5680522464,
+        "filename": "Qwen3.5-9B-Q4_K_M.gguf",
+        "quant": "Q4_K_M",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.68
+      },
+      {
+        "size_bytes": 5394097376,
+        "filename": "Qwen3.5-9B-Q4_K_S.gguf",
+        "quant": "Q4_K_S",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.39
+      },
+      {
+        "size_bytes": 6577841376,
+        "filename": "Qwen3.5-9B-Q5_K_M.gguf",
+        "quant": "Q5_K_M",
+        "label": "5-bit",
+        "color": "lime",
+        "size_gb": 6.58
+      },
+      {
+        "size_bytes": 6361146592,
+        "filename": "Qwen3.5-9B-Q5_K_S.gguf",
+        "quant": "Q5_K_S",
+        "label": "5-bit",
+        "color": "lime",
+        "size_gb": 6.36
+      },
+      {
+        "size_bytes": 7458301152,
+        "filename": "Qwen3.5-9B-Q6_K.gguf",
+        "quant": "Q6_K",
+        "label": "6-bit",
+        "color": "green",
+        "size_gb": 7.46
+      },
+      {
+        "size_bytes": 9527502048,
+        "filename": "Qwen3.5-9B-Q8_0.gguf",
+        "quant": "Q8_0",
+        "label": "8-bit",
+        "color": "teal",
+        "size_gb": 9.53
+      },
+      {
+        "size_bytes": 3649365216,
+        "filename": "Qwen3.5-9B-UD-IQ2_M.gguf",
+        "quant": "IQ2_M",
+        "label": "2-bit",
+        "color": "orange",
+        "size_gb": 3.65
+      },
+      {
+        "size_bytes": 3190613216,
+        "filename": "Qwen3.5-9B-UD-IQ2_XXS.gguf",
+        "quant": "IQ2_XXS",
+        "label": "2-bit",
+        "color": "orange",
+        "size_gb": 3.19
+      },
+      {
+        "size_bytes": 4016235744,
+        "filename": "Qwen3.5-9B-UD-IQ3_XXS.gguf",
+        "quant": "IQ3_XXS",
+        "label": "3-bit",
+        "color": "amber",
+        "size_gb": 4.02
+      },
+      {
+        "size_bytes": 4121781472,
+        "filename": "Qwen3.5-9B-UD-Q2_K_XL.gguf",
+        "quant": "Q2_K_XL",
+        "label": "2-bit",
+        "color": "orange",
+        "size_gb": 4.12
+      },
+      {
+        "size_bytes": 5053834464,
+        "filename": "Qwen3.5-9B-UD-Q3_K_XL.gguf",
+        "quant": "Q3_K_XL",
+        "label": "3-bit",
+        "color": "amber",
+        "size_gb": 5.05
+      },
+      {
+        "size_bytes": 5966095584,
+        "filename": "Qwen3.5-9B-UD-Q4_K_XL.gguf",
+        "quant": "Q4_K_XL",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 5.97
+      },
+      {
+        "size_bytes": 6743680224,
+        "filename": "Qwen3.5-9B-UD-Q5_K_XL.gguf",
+        "quant": "Q5_K_XL",
+        "label": "5-bit",
+        "color": "lime",
+        "size_gb": 6.74
+      },
+      {
+        "size_bytes": 8756929760,
+        "filename": "Qwen3.5-9B-UD-Q6_K_XL.gguf",
+        "quant": "Q6_K_XL",
+        "label": "6-bit",
+        "color": "green",
+        "size_gb": 8.76
+      },
+      {
+        "size_bytes": 12974040288,
+        "filename": "Qwen3.5-9B-UD-Q8_K_XL.gguf",
+        "quant": "Q8_K_XL",
+        "label": "8-bit",
+        "color": "teal",
+        "size_gb": 12.97
+      }
+    ]
+  },
+  {
+    "id": "GnLOLot/MiniCPM5-1B-Claude-Opus-Fable5-Thinking-GGUF",
+    "base_model": "GnLOLot/MiniCPM5-1B-Claude-Opus-Fable5-Thinking",
+    "author": "GnLOLot",
+    "createdAt": "2026-07-03T09:24:41.000Z",
+    "lastModified": "2026-07-13T14:56:34.000Z",
+    "downloads": 328782,
+    "likes": 314,
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "gguf",
+      "llama.cpp",
+      "quantized",
+      "minicpm5",
+      "thinking",
+      "fable5",
+      "coding",
+      "instruction-following"
+    ],
+    "max_ctx": 131072,
+    "vocab_size": 130560,
+    "params_b": 1.0,
+    "params_active_b": null,
+    "modalities": [
+      "text"
+    ],
+    "has_vision_projector": false,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": 24,
+      "n_kv_heads": 2,
+      "head_dim": 96
+    },
+    "quants": [
+      {
+        "size_bytes": 2166552512,
+        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-F16.gguf",
+        "quant": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-F16",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 2.17
+      },
+      {
+        "size_bytes": 688066496,
+        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q4_K_M.gguf",
+        "quant": "Q4_K_M",
+        "label": "4-bit",
+        "color": "yellow",
+        "size_gb": 0.69
+      },
+      {
+        "size_bytes": 786862016,
+        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q5_K_M.gguf",
+        "quant": "Q5_K_M",
+        "label": "5-bit",
+        "color": "lime",
+        "size_gb": 0.79
+      },
+      {
+        "size_bytes": 1153529792,
+        "filename": "MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q8_0.gguf",
+        "quant": "Q8_0",
+        "label": "8-bit",
+        "color": "teal",
+        "size_gb": 1.15
       }
     ]
   },
@@ -8905,6 +8905,51 @@
     ]
   },
   {
+    "id": "bartowski/MiniMax-M3-GGUF",
+    "base_model": "MiniMaxAI/MiniMax-M3",
+    "author": "bartowski",
+    "createdAt": "2026-06-12T14:12:30.000Z",
+    "lastModified": "2026-07-30T18:32:57.000Z",
+    "downloads": 14714,
+    "likes": 7,
+    "pipeline_tag": "image-text-to-text",
+    "tags": [
+      "gguf",
+      "multimodal",
+      "moe",
+      "agent",
+      "coding",
+      "video",
+      "image-text-to-text",
+      "endpoints_compatible"
+    ],
+    "max_ctx": null,
+    "vocab_size": null,
+    "params_b": null,
+    "params_active_b": null,
+    "modalities": [
+      "text",
+      "vision"
+    ],
+    "has_vision_projector": true,
+    "is_mtp": false,
+    "arch": {
+      "n_layers": null,
+      "n_kv_heads": null,
+      "head_dim": null
+    },
+    "quants": [
+      {
+        "size_bytes": 462863168,
+        "filename": "MiniMax-M3-imatrix.gguf",
+        "quant": "MiniMax-M3-imatrix",
+        "label": "?-bit",
+        "color": "gray",
+        "size_gb": 0.46
+      }
+    ]
+  },
+  {
     "id": "vantagewithai/Krea-2-Turbo-GGUF",
     "base_model": "krea/Krea-2-Turbo",
     "author": "vantagewithai",
@@ -9471,83 +9516,6 @@
         "label": "?-bit",
         "color": "gray",
         "size_gb": 8.34
-      }
-    ]
-  },
-  {
-    "id": "nightmedia/Qwen3.5-9B-Holodeck-Lounge-GGUF",
-    "base_model": "DavidAU/Qwen3.5-9B-Claude-4.6-OS-Auto-Variable-HERETIC-UNCENSORED-THINKING-X8b",
-    "author": "nightmedia",
-    "createdAt": "2026-07-26T18:11:41.000Z",
-    "lastModified": "2026-07-27T01:00:16.000Z",
-    "downloads": 3693,
-    "likes": 7,
-    "pipeline_tag": "image-text-to-text",
-    "tags": [
-      "transformers",
-      "gguf",
-      "qwen3_5",
-      "image-text-to-text",
-      "unsloth",
-      "nightmedia",
-      "fine tune",
-      "heretic"
-    ],
-    "max_ctx": null,
-    "vocab_size": null,
-    "params_b": 9.0,
-    "params_active_b": null,
-    "modalities": [
-      "text",
-      "vision"
-    ],
-    "has_vision_projector": true,
-    "is_mtp": false,
-    "arch": {
-      "n_layers": null,
-      "n_kv_heads": null,
-      "head_dim": null
-    },
-    "quants": [
-      {
-        "size_bytes": 5443379808,
-        "filename": "Qwen3.5-9B-Holodeck-Lounge-IQ4_NL.gguf",
-        "quant": "IQ4_NL",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.44
-      },
-      {
-        "size_bytes": 5629108832,
-        "filename": "Qwen3.5-9B-Holodeck-Lounge-Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-        "label": "4-bit",
-        "color": "yellow",
-        "size_gb": 5.63
-      },
-      {
-        "size_bytes": 7359259232,
-        "filename": "Qwen3.5-9B-Holodeck-Lounge-Q6_K.gguf",
-        "quant": "Q6_K",
-        "label": "6-bit",
-        "color": "green",
-        "size_gb": 7.36
-      },
-      {
-        "size_bytes": 9527501408,
-        "filename": "Qwen3.5-9B-Holodeck-Lounge-Q8_0.gguf",
-        "quant": "Q8_0",
-        "label": "8-bit",
-        "color": "teal",
-        "size_gb": 9.53
-      },
-      {
-        "size_bytes": 4498949184,
-        "filename": "mtp-f16.gguf",
-        "quant": "mtp-f16",
-        "label": "?-bit",
-        "color": "gray",
-        "size_gb": 4.5
       }
     ]
   }
